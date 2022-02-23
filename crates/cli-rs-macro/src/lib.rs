@@ -43,9 +43,7 @@ pub fn derive_arg(input: TokenStream) -> TokenStream {
     let struct_name = derive_input.ident;
 
     quote! {
-        impl #struct_name {
-            fn answer() -> u32 { 42 }
-        }
+        impl cli_rs::ToArg for #struct_name {}
     }
     .into()
 }

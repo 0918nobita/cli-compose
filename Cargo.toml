@@ -1,5 +1,6 @@
 [workspace]
 members = [
-    "crates/cli_rs",
+    "crates/cli-rs",
+    "crates/cli-rs-macro",
     "crates/playground",
 ]

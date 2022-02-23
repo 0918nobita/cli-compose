@@ -5,5 +5,5 @@ use cli_rs::Arg;
 struct Input(String);
 
 fn main() {
-    assert_eq!(42, Input::answer());
+    println!("Hello, world!");
 }
