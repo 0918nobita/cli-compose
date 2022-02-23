@@ -28,7 +28,6 @@ pub fn derive_arg(input: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(input as DeriveInput);
 
     let doc = extract_doc(derive_input.attrs.into_iter());
-    println!("Doc: {:?}", doc);
 
     let data_struct = match &derive_input.data {
         Data::Struct(data) => data,
@@ -41,9 +40,18 @@ pub fn derive_arg(input: TokenStream) -> TokenStream {
     };
 
     let struct_name = derive_input.ident;
+    let struct_name_lowercase = struct_name.to_string().to_lowercase();
 
     quote! {
-        impl cli_rs::ToArg for #struct_name {}
+        impl cli_rs::ToArg for #struct_name {
+            fn name() -> String {
+                #struct_name_lowercase.to_owned()
+            }
+
+            fn description() -> String {
+                #doc.to_owned()
+            }
+        }
     }
     .into()
 }
