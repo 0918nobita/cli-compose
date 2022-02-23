@@ -37,10 +37,21 @@ pub fn derive_arg(input: TokenStream) -> TokenStream {
         _ => panic!("#[derive(Arg)] can only be applied to structs"),
     };
 
-    let _unnamed_fields = match &data_struct.fields {
+    let unnamed_fields = match &data_struct.fields {
         Fields::Unnamed(fields) => fields,
         _ => panic!("#[derive(Arg)] can only be applied to structs with unnamed fields"),
     };
+
+    if unnamed_fields.unnamed.len() != 1 {
+        panic!("#[derive(Arg)] can only be applied to structs with exactly one unnamed field");
+    }
+
+    let first_field = unnamed_fields
+        .unnamed
+        .first()
+        .expect("Unnamed fields should not be empty");
+
+    let ty = first_field.ty.clone();
 
     let struct_name = derive_input.ident;
     let struct_name_lowercase = struct_name.to_string().to_lowercase();
@@ -53,6 +64,11 @@ pub fn derive_arg(input: TokenStream) -> TokenStream {
 
             fn description() -> String {
                 #doc.to_owned()
+            }
+
+            fn parse(str: &str) -> Option<Self> {
+                use std::str::FromStr;
+                #ty::from_str(str).ok().map(|v| #struct_name(v))
             }
         }
     }
