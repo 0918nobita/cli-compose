@@ -6,6 +6,8 @@ use syn::{parse_macro_input, Data, DeriveInput, Fields};
 pub fn derive_arg(input: TokenStream) -> TokenStream {
     let item = parse_macro_input!(input as DeriveInput);
 
+    println!("Num attributes: {}", item.attrs.len());
+
     let data_struct = match &item.data {
         Data::Struct(data) => data,
         _ => panic!("#[derive(Arg)] can only be applied to structs"),
