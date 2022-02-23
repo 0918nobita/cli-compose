@@ -1,0 +1,7 @@
+[package]
+name = "cli_rs_playground"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cli_rs = { path = "../cli_rs" }

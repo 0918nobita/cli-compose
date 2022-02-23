@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "crates/cli_rs",
+    "crates/playground",
+]
