@@ -1,12 +1,19 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, AttrStyle, Attribute, Data, DeriveInput, Fields};
+use syn::{Attribute, Data};
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+enum DeriverError {
+    #[error("#[derive(Arg)] can only be applied to structs with single unnamed field")]
+    InvalidStruct,
+}
 
 fn try_get_single_line_doc(attr: Attribute) -> Option<String> {
     let tokens = match attr {
         Attribute {
             path,
-            style: AttrStyle::Outer,
+            style: syn::AttrStyle::Outer,
             tokens,
             ..
         } if path.is_ident("doc") => tokens,
@@ -26,33 +33,32 @@ fn extract_doc(attrs: impl Iterator<Item = Attribute>) -> String {
         .join("\n")
 }
 
+fn validate_struct(data: &Data) -> Result<&syn::Field, DeriverError> {
+    let unnamed = match data {
+        Data::Struct(syn::DataStruct {
+            fields: syn::Fields::Unnamed(syn::FieldsUnnamed { unnamed, .. }),
+            ..
+        }) => unnamed,
+
+        _ => return Err(DeriverError::InvalidStruct),
+    };
+
+    match unnamed.iter().collect::<Vec<_>>()[..] {
+        [field] => Ok(field),
+
+        _ => Err(DeriverError::InvalidStruct),
+    }
+}
+
 #[proc_macro_derive(Arg)]
 pub fn derive_arg(input: TokenStream) -> TokenStream {
-    let derive_input = parse_macro_input!(input as DeriveInput);
+    let derive_input = syn::parse_macro_input!(input as syn::DeriveInput);
 
     let doc = extract_doc(derive_input.attrs.into_iter());
 
-    let data_struct = match &derive_input.data {
-        Data::Struct(data) => data,
-        _ => panic!("#[derive(Arg)] can only be applied to structs"),
-    };
+    let field = validate_struct(&derive_input.data).unwrap_or_else(|err| panic!("{}", err));
 
-    let unnamed_fields = match &data_struct.fields {
-        Fields::Unnamed(fields) => fields,
-        _ => panic!("#[derive(Arg)] can only be applied to structs with unnamed fields"),
-    };
-
-    if unnamed_fields.unnamed.len() != 1 {
-        panic!("#[derive(Arg)] can only be applied to structs with exactly one unnamed field");
-    }
-
-    let first_field = unnamed_fields
-        .unnamed
-        .first()
-        .expect("Unnamed fields should not be empty");
-
-    let ty = first_field.ty.clone();
-
+    let ty = field.ty.clone();
     let struct_name = derive_input.ident;
     let struct_name_lowercase = struct_name.to_string().to_lowercase();
 
