@@ -1,4 +1,4 @@
-use cli_rs::{Arg, ArgGroup, Flag, FlagArg, ToArg};
+use cli_rs::{Arg, ArgGroup, Flag, FlagArg};
 
 #[derive(Debug, Arg)]
 /// ソースファイルのパス
@@ -31,7 +31,5 @@ enum OutputGroup {
 }
 
 fn main() {
-    println!("name: {}", InputArg::name());
-    println!("desc: {}", InputArg::description());
-    println!("result: {:?}", InputArg::parse("hoge"));
+    cli_rs::parse!(InputArg);
 }

@@ -58,7 +58,27 @@ fn extract_doc(attrs: impl Iterator<Item = Attribute>) -> String {
         .join("\n")
 }
 
-/// コマンドライン引数
+fn upper_camel_to_kebab(str: &str) -> String {
+    str.chars()
+        .fold((false, vec![]), |(first_skipped, mut cs), c| {
+            if c >= 'A' && c <= 'Z' {
+                if !first_skipped {
+                    cs.push(c.to_ascii_lowercase());
+                    return (true, cs);
+                }
+                cs.push('-');
+                cs.push(c.to_ascii_lowercase());
+                (true, cs)
+            } else {
+                cs.push(c);
+                (first_skipped, cs)
+            }
+        })
+        .1
+        .into_iter()
+        .collect()
+}
+
 pub fn derive_arg(input: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(input as DeriveInput);
 
@@ -68,7 +88,7 @@ pub fn derive_arg(input: TokenStream) -> TokenStream {
 
     let ty = field.ty.clone();
     let struct_name = derive_input.ident;
-    let struct_name_lowercase = struct_name.to_string().to_lowercase();
+    let struct_name_lowercase = upper_camel_to_kebab(&struct_name.to_string());
 
     quote! {
         impl cli_rs::ToArg for #struct_name {
