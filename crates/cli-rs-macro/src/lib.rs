@@ -51,6 +51,7 @@ fn validate_struct(data: &Data) -> Result<&syn::Field, DeriverError> {
 }
 
 #[proc_macro_derive(Arg)]
+/// コマンドライン引数
 pub fn derive_arg(input: TokenStream) -> TokenStream {
     let derive_input = syn::parse_macro_input!(input as syn::DeriveInput);
 
@@ -79,4 +80,22 @@ pub fn derive_arg(input: TokenStream) -> TokenStream {
         }
     }
     .into()
+}
+
+#[proc_macro_derive(Flag)]
+/// 値を持たないフラグ
+pub fn derive_flag(_: TokenStream) -> TokenStream {
+    quote! {}.into()
+}
+
+#[proc_macro_derive(FlagArg)]
+/// 値を要求するフラグ
+pub fn derive_flag_arg(_: TokenStream) -> TokenStream {
+    quote! {}.into()
+}
+
+#[proc_macro_derive(ArgGroup)]
+/// 引数グループ
+pub fn derive_arg_group(_: TokenStream) -> TokenStream {
+    quote! {}.into()
 }

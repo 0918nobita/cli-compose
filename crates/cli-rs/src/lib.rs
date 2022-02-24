@@ -1,4 +1,4 @@
-pub use cli_rs_macro::Arg;
+pub use cli_rs_macro::{Arg, ArgGroup, Flag, FlagArg};
 
 pub trait ToArg: Sized {
     fn name() -> String;

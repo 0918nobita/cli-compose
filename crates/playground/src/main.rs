@@ -1,11 +1,37 @@
-use cli_rs::{Arg, ToArg};
+use cli_rs::{Arg, ArgGroup, Flag, FlagArg, ToArg};
 
 #[derive(Debug, Arg)]
-/// ソースファイル
-struct Input(String);
+/// ソースファイルのパス
+struct InputArg(String);
+
+#[derive(Flag)]
+/// ソースコードを標準入力から読み込む
+struct StdinFlag(bool);
+
+#[allow(dead_code)]
+#[derive(ArgGroup)]
+enum InputGroup {
+    File(InputArg),
+    Stdin(StdinFlag),
+}
+
+#[derive(FlagArg)]
+/// 出力するファイルのパス
+struct OutputFlag(String);
+
+#[derive(Flag)]
+/// 標準出力に出力する
+struct StdoutFlag(bool);
+
+#[allow(dead_code)]
+#[derive(ArgGroup)]
+enum OutputGroup {
+    File(OutputFlag),
+    Stdout(StdoutFlag),
+}
 
 fn main() {
-    println!("name: {}", Input::name());
-    println!("desc: {}", Input::description());
-    println!("result: {:?}", Input::parse("hoge"));
+    println!("name: {}", InputArg::name());
+    println!("desc: {}", InputArg::description());
+    println!("result: {:?}", InputArg::parse("hoge"));
 }
