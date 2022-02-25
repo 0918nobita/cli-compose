@@ -59,21 +59,23 @@ fn extract_doc(attrs: impl Iterator<Item = Attribute>) -> String {
 }
 
 fn upper_camel_to_kebab(str: &str) -> String {
-    str.chars()
-        .fold((false, vec![]), |(first_skipped, mut cs), c| {
-            if c >= 'A' && c <= 'Z' {
-                if !first_skipped {
-                    cs.push(c.to_ascii_lowercase());
-                    return (true, cs);
-                }
-                cs.push('-');
+    fn folder((first_skipped, mut cs): (bool, Vec<char>), c: char) -> (bool, Vec<char>) {
+        if ('A'..='Z').contains(&c) {
+            if !first_skipped {
                 cs.push(c.to_ascii_lowercase());
-                (true, cs)
-            } else {
-                cs.push(c);
-                (first_skipped, cs)
+                return (true, cs);
             }
-        })
+            cs.push('-');
+            cs.push(c.to_ascii_lowercase());
+            return (true, cs);
+        }
+
+        cs.push(c);
+        (first_skipped, cs)
+    }
+
+    str.chars()
+        .fold((false, vec![]), folder)
         .1
         .into_iter()
         .collect()
