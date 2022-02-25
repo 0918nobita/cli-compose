@@ -1,6 +1,6 @@
 use syn::Attribute;
 
-fn try_get_single_line_doc(attr: Attribute) -> Option<String> {
+fn try_get_single_line_doc(attr: &Attribute) -> Option<String> {
     let meta = attr.parse_meta().ok()?;
     match meta {
         syn::Meta::NameValue(syn::MetaNameValue {
@@ -12,7 +12,7 @@ fn try_get_single_line_doc(attr: Attribute) -> Option<String> {
     }
 }
 
-pub fn extract_doc(attrs: impl Iterator<Item = Attribute>) -> String {
+pub fn extract_doc<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> String {
     attrs
         .filter_map(try_get_single_line_doc)
         .collect::<Vec<_>>()

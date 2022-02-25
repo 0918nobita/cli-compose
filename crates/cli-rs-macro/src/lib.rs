@@ -12,7 +12,7 @@ use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{Expr, Path, Token};
 
-#[proc_macro_derive(Arg)]
+#[proc_macro_derive(Arg, attributes(arg))]
 /// コマンドライン引数
 pub fn derive_arg(input: TokenStream) -> TokenStream {
     arg::derive_arg(input)

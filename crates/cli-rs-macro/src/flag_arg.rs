@@ -41,7 +41,7 @@ pub fn derive_flag_arg(input: TokenStream) -> TokenStream {
 
     let field = validate_struct(&derive_input.data).unwrap_or_else(|err| panic!("{}", err));
 
-    let doc = extract_doc(derive_input.attrs.into_iter());
+    let doc = extract_doc(derive_input.attrs.iter());
 
     let ty = field.ty.clone();
     let struct_name = derive_input.ident;

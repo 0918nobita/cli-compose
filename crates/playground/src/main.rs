@@ -1,6 +1,7 @@
 use cli_rs::{Arg, ArgGroup, Flag, FlagArg};
 
 #[derive(Debug, Arg)]
+#[arg(name = "input")]
 /// ソースファイルのパス
 struct InputArg(String);
 

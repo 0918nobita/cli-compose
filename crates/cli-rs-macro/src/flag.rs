@@ -60,10 +60,10 @@ fn extract_flag_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> Fla
                         );
                     }
                 }
-                _ => panic!("Metadata in flag attribute is invalid"),
+                _ => panic!("Metadata in #[flag(..)] is invalid"),
             },
             syn::NestedMeta::Lit(_) => {
-                panic!("Literals in flag attribute are not supported")
+                panic!("Literals in #[flag(..)] are not supported")
             }
         }
     }
@@ -82,7 +82,7 @@ pub fn derive_flag(input: TokenStream) -> TokenStream {
         None => quote! { None },
     };
 
-    let doc = extract_doc(derive_input.attrs.into_iter());
+    let doc = extract_doc(derive_input.attrs.iter());
 
     let struct_name = derive_input.ident;
     let struct_name_kebab_case =
