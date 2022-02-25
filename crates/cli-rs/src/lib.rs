@@ -22,3 +22,7 @@ pub enum ArgMeta {
 pub trait ToArgMeta {
     fn metadata() -> ArgMeta;
 }
+
+pub trait AsFlagArg: Sized {
+    fn parse(s: &str) -> Option<Self>;
+}

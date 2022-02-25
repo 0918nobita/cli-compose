@@ -2,7 +2,7 @@ use cli_rs::{Arg, ArgGroup, Flag, FlagArg};
 
 #[derive(Debug, Arg)]
 /// ソースファイルのパス
-struct Input(String);
+struct InputArg(String);
 
 #[derive(Debug, Flag)]
 #[flag(long = "stdin")]
@@ -12,13 +12,13 @@ struct StdinFlag;
 #[allow(dead_code)]
 #[derive(Debug, ArgGroup)]
 enum InputGroup {
-    File(Input),
+    File(InputArg),
     Stdin(StdinFlag),
 }
 
 #[derive(Debug, FlagArg)]
 /// 出力するファイルのパス
-struct Output(String);
+struct OutputFlagArg(String);
 
 #[derive(Debug, Flag)]
 #[flag(long = "stdout")]
@@ -28,13 +28,13 @@ struct StdoutFlag;
 #[allow(dead_code)]
 #[derive(Debug, ArgGroup)]
 enum OutputGroup {
-    File(Output),
+    File(OutputFlagArg),
     Stdout(StdoutFlag),
 }
 
 #[derive(Flag)]
-struct Verbose;
+struct VerboseFlag;
 
 fn main() {
-    cli_rs::parse!(StdinFlag, StdoutFlag, Input, Verbose);
+    cli_rs::parse!(StdinFlag, StdoutFlag, InputArg, VerboseFlag, OutputFlagArg);
 }
