@@ -2,34 +2,34 @@ use cli_rs::{Arg, ArgGroup, Flag, FlagArg};
 
 #[derive(Debug, Arg)]
 /// ソースファイルのパス
-struct InputArg(String);
+struct Input(String);
 
-#[derive(Flag)]
+#[derive(Debug, Flag)]
 /// ソースコードを標準入力から読み込む
-struct StdinFlag(bool);
+struct StdinFlag;
 
 #[allow(dead_code)]
-#[derive(ArgGroup)]
+#[derive(Debug, ArgGroup)]
 enum InputGroup {
-    File(InputArg),
+    File(Input),
     Stdin(StdinFlag),
 }
 
-#[derive(FlagArg)]
+#[derive(Debug, FlagArg)]
 /// 出力するファイルのパス
-struct OutputFlag(String);
+struct Output(String);
 
-#[derive(Flag)]
+#[derive(Debug, Flag)]
 /// 標準出力に出力する
-struct StdoutFlag(bool);
+struct StdoutFlag;
 
 #[allow(dead_code)]
-#[derive(ArgGroup)]
+#[derive(Debug, ArgGroup)]
 enum OutputGroup {
-    File(OutputFlag),
+    File(Output),
     Stdout(StdoutFlag),
 }
 
 fn main() {
-    cli_rs::parse!(InputArg);
+    cli_rs::parse!(Input);
 }

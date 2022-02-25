@@ -6,7 +6,7 @@ use syn::{parse_macro_input, Attribute, Data, DeriveInput};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub struct InvalidStruct;
+struct InvalidStruct;
 
 impl fmt::Display for InvalidStruct {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -17,7 +17,7 @@ impl fmt::Display for InvalidStruct {
     }
 }
 
-pub fn validate_struct(data: &Data) -> Result<&syn::Field, InvalidStruct> {
+fn validate_struct(data: &Data) -> Result<&syn::Field, InvalidStruct> {
     let unnamed = match data {
         Data::Struct(syn::DataStruct {
             fields: syn::Fields::Unnamed(syn::FieldsUnnamed { unnamed, .. }),
