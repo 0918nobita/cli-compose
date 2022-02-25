@@ -5,6 +5,8 @@ use quote::quote;
 use syn::Data;
 use thiserror::Error;
 
+use crate::{doc::extract_doc, kebab_case::upper_camel_to_kebab};
+
 #[derive(Debug, Error)]
 struct InvalidStruct;
 
@@ -30,5 +32,21 @@ pub fn derive_flag(input: TokenStream) -> TokenStream {
 
     validate_struct(&derive_input.data).unwrap_or_else(|err| panic!("{}", err));
 
-    quote! {}.into()
+    let doc = extract_doc(derive_input.attrs.into_iter());
+
+    let struct_name = derive_input.ident;
+    let struct_name_kebab_case = upper_camel_to_kebab(&struct_name.to_string());
+
+    quote! {
+        impl cli_rs::ToArgMeta for #struct_name {
+            fn metadata() -> cli_rs::ArgMeta {
+                cli_rs::ArgMeta::Flag {
+                    long: #struct_name_kebab_case.to_owned(),
+                    short: None,
+                    description: #doc.to_owned(),
+                }
+            }
+        }
+    }
+    .into()
 }

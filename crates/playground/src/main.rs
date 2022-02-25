@@ -30,6 +30,9 @@ enum OutputGroup {
     Stdout(StdoutFlag),
 }
 
+#[derive(Flag)]
+struct Verbose;
+
 fn main() {
-    cli_rs::parse!(Input);
+    cli_rs::parse!(Input, Verbose);
 }

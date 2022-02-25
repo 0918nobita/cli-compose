@@ -1,13 +1,15 @@
 mod arg;
 mod arg_group;
+mod doc;
 mod flag;
 mod flag_arg;
+mod kebab_case;
 
 use std::fmt;
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{Path, Token};
+use syn::Path;
 
 #[proc_macro_derive(Arg)]
 /// コマンドライン引数
@@ -49,7 +51,7 @@ impl fmt::Debug for ArgTypes {
 impl syn::parse::Parse for ArgTypes {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let types = input
-            .parse_terminated::<Path, Token![,]>(Path::parse)?
+            .parse_terminated::<Path, syn::Token![,]>(Path::parse)?
             .into_iter()
             .collect::<Vec<_>>();
         Ok(ArgTypes(types))
@@ -65,11 +67,7 @@ pub fn parse(input: TokenStream) -> TokenStream {
         .iter()
         .map(|path| {
             quote! {
-                println!(
-                    "{}: {}",
-                    <#path as cli_rs::ToArg>::name(),
-                    <#path as cli_rs::ToArg>::description()
-                );
+                println!("{:?}", <#path as cli_rs::ToArgMeta>::metadata());
             }
         })
         .collect::<proc_macro2::TokenStream>();
