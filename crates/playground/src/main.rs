@@ -5,6 +5,7 @@ use cli_rs::{Arg, ArgGroup, Flag, FlagArg};
 struct Input(String);
 
 #[derive(Debug, Flag)]
+#[flag(long = "stdin")]
 /// ソースコードを標準入力から読み込む
 struct StdinFlag;
 
@@ -20,6 +21,7 @@ enum InputGroup {
 struct Output(String);
 
 #[derive(Debug, Flag)]
+#[flag(long = "stdout")]
 /// 標準出力に出力する
 struct StdoutFlag;
 
@@ -34,5 +36,5 @@ enum OutputGroup {
 struct Verbose;
 
 fn main() {
-    cli_rs::parse!(Input, Verbose);
+    cli_rs::parse!(StdinFlag, StdoutFlag, Input, Verbose);
 }
