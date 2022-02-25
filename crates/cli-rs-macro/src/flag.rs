@@ -2,7 +2,7 @@ use std::fmt;
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{Attribute, Data};
+use syn::{Attribute, Data, NestedMeta};
 use thiserror::Error;
 
 use crate::{doc::extract_doc, kebab_case::upper_camel_to_kebab};
@@ -32,47 +32,54 @@ struct FlagAttr {
     short: Option<char>,
 }
 
+fn extract_meta<'a>(
+    attrs: impl Iterator<Item = &'a Attribute> + 'a,
+    name: &'a str,
+) -> impl Iterator<Item = NestedMeta> + 'a {
+    attrs
+        .filter_map(|attr| {
+            attr.parse_meta().ok().and_then(|meta| match meta {
+                syn::Meta::List(syn::MetaList { path, nested, .. }) if path.is_ident(name) => {
+                    Some(nested)
+                }
+                _ => None,
+            })
+        })
+        .flatten()
+}
+
 // HACK: 可読性を上げたい
-fn extract_flag_attr(attrs: &[Attribute]) -> FlagAttr {
+fn extract_flag_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> FlagAttr {
     let mut long: Option<String> = None;
     let mut short: Option<char> = None;
 
-    for attr in attrs {
-        let nested = match attr.parse_meta() {
-            Ok(syn::Meta::List(syn::MetaList { path, nested, .. })) if path.is_ident("flag") => {
-                nested
-            }
-            _ => continue,
-        };
-
-        for metadata in nested.iter() {
-            match metadata {
-                syn::NestedMeta::Meta(meta) => match meta {
-                    syn::Meta::NameValue(syn::MetaNameValue { path, lit, .. }) => {
-                        if path.is_ident("long") {
-                            let lit = match lit {
-                                syn::Lit::Str(lit) => lit,
-                                _ => panic!("#[flag(long = ..)] must be a string literal"),
-                            };
-                            long = Some(lit.value());
-                        } else if path.is_ident("short") {
-                            let lit = match lit {
-                                syn::Lit::Char(lit) => lit,
-                                _ => panic!("#[flag(short = ..)] must be a char literal"),
-                            };
-                            short = Some(lit.value());
-                        } else {
-                            panic!(
-                                "Unexpected key in #[flag(..)]: {}",
-                                path.into_token_stream()
-                            );
-                        }
+    for metadata in extract_meta(attrs, "flag") {
+        match metadata {
+            syn::NestedMeta::Meta(meta) => match meta {
+                syn::Meta::NameValue(syn::MetaNameValue { path, lit, .. }) => {
+                    if path.is_ident("long") {
+                        let lit = match lit {
+                            syn::Lit::Str(lit) => lit,
+                            _ => panic!("#[flag(long = ..)] must be a string literal"),
+                        };
+                        long = Some(lit.value());
+                    } else if path.is_ident("short") {
+                        let lit = match lit {
+                            syn::Lit::Char(lit) => lit,
+                            _ => panic!("#[flag(short = ..)] must be a char literal"),
+                        };
+                        short = Some(lit.value());
+                    } else {
+                        panic!(
+                            "Unexpected key in #[flag(..)]: {}",
+                            path.into_token_stream()
+                        );
                     }
-                    _ => panic!("Metadata in flag attribute is invalid"),
-                },
-                syn::NestedMeta::Lit(_) => {
-                    panic!("Literals in flag attribute are not supported")
                 }
+                _ => panic!("Metadata in flag attribute is invalid"),
+            },
+            syn::NestedMeta::Lit(_) => {
+                panic!("Literals in flag attribute are not supported")
             }
         }
     }
@@ -85,7 +92,7 @@ pub fn derive_flag(input: TokenStream) -> TokenStream {
 
     validate_struct(&derive_input.data).unwrap_or_else(|err| panic!("{}", err));
 
-    let FlagAttr { long, short } = extract_flag_attr(&derive_input.attrs);
+    let FlagAttr { long, short } = extract_flag_attr(derive_input.attrs.iter());
     let short = match short {
         Some(lit) => quote! { Some(#lit) },
         None => quote! { None },
