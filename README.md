@@ -6,7 +6,7 @@
 use cli_rs::{Arg, ArgGroup, FlagArg, Flag};
 
 #[derive(Debug, Arg)]
-struct Input(String);
+struct InputArg(String);
 
 #[derive(Debug, Flag)]
 #[flag(long = "stdin")]
@@ -14,13 +14,13 @@ struct StdinFlag;
 
 #[derive(Debug, ArgGroup)]
 enum InputGroup {
-    File(Input),
+    File(InputArg),
     Stdin(StdinFlag),
 }
 
 #[derive(Debug, FlagArg)]
 #[flag_arg(short = 'o')]
-struct Output(String);
+struct OutputFlagArg(String);
 
 #[derive(Debug, Flag)]
 #[flag(long = "stdout")]
@@ -28,18 +28,18 @@ struct StdoutFlag;
 
 #[derive(Debug, ArgGroup)]
 enum OutputGroup {
-    File(Output),
+    File(OutputFlagArg),
     Stdout(StdoutFlag),
 }
 
 #[derive(Flag)]
-struct Verbose;
+struct VerboseFlag;
 
 pub fn main() {
     cli_rs::parse!(
         input = InputGroup,
         output = OutputGroup,
-        verbose = Verbose,
+        verbose = VerboseFlag,
     );
 
     println!("Input: {:?}", input);
@@ -53,7 +53,7 @@ pub fn main() {
 ```
 Input: Stdin(StdinFlag)
 Output: Stdout(StdoutFlag)
-Verbose: Some(Verbose)
+Verbose: Some(VerboseFlag)
 ```
 
 `cargo run -- -o output.txt input.txt` :
