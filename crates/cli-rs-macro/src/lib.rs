@@ -1,5 +1,6 @@
 mod arg;
 mod arg_group;
+mod attr_meta;
 mod doc;
 mod flag;
 mod flag_arg;

@@ -2,10 +2,10 @@ use std::fmt;
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{Attribute, Data, NestedMeta};
+use syn::{Attribute, Data};
 use thiserror::Error;
 
-use crate::{doc::extract_doc, kebab_case::upper_camel_to_kebab};
+use crate::{attr_meta::extract_meta, doc::extract_doc, kebab_case::upper_camel_to_kebab};
 
 #[derive(Debug, Error)]
 struct InvalidStruct;
@@ -30,22 +30,6 @@ fn validate_struct(data: &Data) -> Result<(), InvalidStruct> {
 struct FlagAttr {
     long: Option<String>,
     short: Option<char>,
-}
-
-fn extract_meta<'a>(
-    attrs: impl Iterator<Item = &'a Attribute> + 'a,
-    name: &'a str,
-) -> impl Iterator<Item = NestedMeta> + 'a {
-    attrs
-        .filter_map(|attr| {
-            attr.parse_meta().ok().and_then(|meta| match meta {
-                syn::Meta::List(syn::MetaList { path, nested, .. }) if path.is_ident(name) => {
-                    Some(nested)
-                }
-                _ => None,
-            })
-        })
-        .flatten()
 }
 
 // HACK: 可読性を上げたい
