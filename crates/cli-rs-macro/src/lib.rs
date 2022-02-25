@@ -9,7 +9,7 @@ use std::fmt;
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
-use syn::Path;
+use syn::{Expr, Path, Token};
 
 #[proc_macro_derive(Arg)]
 /// コマンドライン引数
@@ -35,35 +35,45 @@ pub fn derive_arg_group(input: TokenStream) -> TokenStream {
     arg_group::derive_arg_group(input)
 }
 
-struct ArgTypes(Vec<Path>);
+struct ArgTypes {
+    args: Expr,
+    arg_types: Vec<Path>,
+}
 
 impl fmt::Debug for ArgTypes {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let types = &self
-            .0
+        let arg_type_names = &self
+            .arg_types
             .iter()
             .map(|path| format!("{}", path.to_token_stream()))
             .collect::<Vec<_>>();
-        write!(f, "ArgTypes {:?}", types)
+        write!(
+            f,
+            "ArgTypes(`{}`, {:?})",
+            &self.args.to_token_stream(),
+            arg_type_names
+        )
     }
 }
 
 impl syn::parse::Parse for ArgTypes {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let types = input
+        let args = input.call(Expr::parse_without_eager_brace)?;
+        input.parse::<Token![,]>()?;
+        let arg_types = input
             .parse_terminated::<Path, syn::Token![,]>(Path::parse)?
             .into_iter()
             .collect::<Vec<_>>();
-        Ok(ArgTypes(types))
+        Ok(ArgTypes { args, arg_types })
     }
 }
 
 #[proc_macro]
 /// コマンドライン引数をパースする
 pub fn parse(input: TokenStream) -> TokenStream {
-    let ArgTypes(types) = syn::parse_macro_input!(input as ArgTypes);
+    let ArgTypes { args, arg_types } = syn::parse_macro_input!(input as ArgTypes);
 
-    let types = types
+    let arg_types = arg_types
         .iter()
         .map(|path| {
             quote! {
@@ -73,8 +83,8 @@ pub fn parse(input: TokenStream) -> TokenStream {
         .collect::<proc_macro2::TokenStream>();
 
     quote! {
-        #types
-        println!("args: {:?}", std::env::args().collect::<Vec<_>>());
+        #arg_types
+        println!("args: {:?}", #args);
     }
     .into()
 }

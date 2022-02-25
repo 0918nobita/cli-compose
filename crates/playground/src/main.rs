@@ -36,5 +36,12 @@ enum OutputGroup {
 struct VerboseFlag;
 
 fn main() {
-    cli_rs::parse!(StdinFlag, StdoutFlag, InputArg, VerboseFlag, OutputFlagArg);
+    cli_rs::parse!(
+        std::env::args().collect::<Vec<_>>(),
+        StdinFlag,
+        StdoutFlag,
+        InputArg,
+        VerboseFlag,
+        OutputFlagArg
+    );
 }
