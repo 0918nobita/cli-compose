@@ -43,21 +43,28 @@ impl Parse for ArgTypes {
     }
 }
 
+// TODO: ArgMeta ベクタをもとにして、トークン列をパースする
 pub fn parse(input: TokenStream) -> TokenStream {
     let ArgTypes { args, arg_binds } = syn::parse_macro_input!(input as ArgTypes);
 
-    let arg_types = arg_binds
+    let arg_meta = arg_binds
         .iter()
         .map(|ArgBind { path, .. }| {
-            quote! {
-                println!("{:?}", <#path as cli_rs::ToArgMeta>::metadata());
-            }
+            quote! { <#path as cli_rs::ToArgMeta>::metadata(), }
         })
         .collect::<proc_macro2::TokenStream>();
+    let arg_meta = quote! { vec![#arg_meta] };
 
     quote! {
-        #arg_types
-        println!("args: {:?}", #args);
+        {
+            let arg_meta = #arg_meta;
+            println!("arg_meta:");
+            for item in arg_meta {
+                println!("    {:?}", item);
+            }
+            let tokens = cli_rs::parse_into_tokens(#args).collect::<Vec<_>>();
+            println!("tokens: {:?}", tokens);
+        }
     }
     .into()
 }

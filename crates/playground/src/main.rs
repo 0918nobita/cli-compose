@@ -1,9 +1,8 @@
 use cli_rs::{Arg, Flag, FlagArg, Group};
 
 #[derive(Debug, Arg)]
-#[arg(name = "input")]
 /// ソースファイルのパス
-struct InputArg(String);
+struct Input(String);
 
 #[derive(Debug, Flag)]
 #[flag(long = "stdin")]
@@ -13,14 +12,14 @@ struct StdinFlag;
 #[allow(dead_code)]
 #[derive(Debug, Group)]
 enum InputGroup {
-    File(InputArg),
+    File(Input),
     Stdin(StdinFlag),
 }
 
 #[derive(Debug, FlagArg)]
-#[flag_arg(long = "output", short = 'o')]
+#[flag_arg(short = 'o')]
 /// 出力するファイルのパス
-struct OutputFlagArg(String);
+struct Output(String);
 
 #[derive(Debug, Flag)]
 #[flag(long = "stdout")]
@@ -30,21 +29,20 @@ struct StdoutFlag;
 #[allow(dead_code)]
 #[derive(Debug, Group)]
 enum OutputGroup {
-    File(OutputFlagArg),
+    File(Output),
     Stdout(StdoutFlag),
 }
 
 #[derive(Flag)]
-#[flag(long = "verbose")]
-struct VerboseFlag;
+struct Verbose;
 
 fn main() {
     cli_rs::parse!(
-        std::env::args().collect::<Vec<_>>(),
+        std::env::args(),
         stdin = StdinFlag,
         stdout = StdoutFlag,
-        input = InputArg,
-        verbose = VerboseFlag,
-        output = OutputFlagArg
+        input = Input,
+        verbose = Verbose,
+        output = Output,
     );
 }
