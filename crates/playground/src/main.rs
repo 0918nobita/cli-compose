@@ -39,10 +39,10 @@ struct VerboseFlag;
 fn main() {
     cli_rs::parse!(
         std::env::args().collect::<Vec<_>>(),
-        StdinFlag,
-        StdoutFlag,
-        InputArg,
-        VerboseFlag,
-        OutputFlagArg
+        stdin = StdinFlag,
+        stdout = StdoutFlag,
+        input = InputArg,
+        verbose = VerboseFlag,
+        output = OutputFlagArg
     );
 }
