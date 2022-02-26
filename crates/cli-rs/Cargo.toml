@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 cli-rs-macro = { path = "../cli-rs-macro" }
+thiserror = "1.0.30"

@@ -101,3 +101,80 @@ pub fn derive_flag(input: TokenStream) -> TokenStream {
     }
     .into()
 }
+
+#[derive(Debug, Error)]
+pub enum FlagError {
+    #[error("Duplicate short flag: `{0:?} -> {1:?}` and `{0:?} -> {2:?}`")]
+    DuplicateShortFlag(char, String, String),
+}
+
+/// [`FlagNormalizer`] を使ってのみ生成可能な、正規化済みのフラグ
+///
+/// 短縮フラグが定義されている場合はそれも含む
+#[derive(Hash)]
+pub struct NormalizedFlag {
+    short: Option<char>,
+    long: String,
+}
+
+impl NormalizedFlag {
+    #[allow(dead_code)]
+    pub const fn short(&self) -> &Option<char> {
+        &self.short
+    }
+
+    #[allow(dead_code)]
+    pub const fn long(&self) -> &String {
+        &self.long
+    }
+}
+
+#[derive(Default)]
+pub struct FlagNormalizer {
+    inner: std::collections::HashMap<char, String>,
+}
+
+impl FlagNormalizer {
+    /// short フラグと long フラグの対応を追加する
+    ///
+    /// ```rust
+    /// let mut normalizer = cli_rs::FlagNormalizer::default();
+    /// assert!(normalizer.try_add(&'o', "output").is_ok());
+    /// assert!(normalizer.try_add(&'v', "version").is_ok());
+    /// assert!(normalizer.try_add(&'o', "output").is_err());
+    /// ```
+    #[allow(dead_code)]
+    pub fn try_add(&mut self, short: &char, long: &str) -> Result<(), FlagError> {
+        if let Some(dup_long) = self.inner.get(short) {
+            return Err(FlagError::DuplicateShortFlag(
+                *short,
+                long.to_owned(),
+                dup_long.to_owned(),
+            ));
+        }
+        if self.inner.insert(*short, long.to_owned()).is_some() {
+            panic!("Illigal inner state");
+        }
+        Ok(())
+    }
+
+    /// short フラグをもとに正規化されたフラグを得る
+    ///
+    /// ```rust
+    /// let mut normalizer = cli_rs::FlagNormalizer::default();
+    /// assert!(normalizer.try_add(&'o', "output").is_ok());
+    /// assert!(matches!(
+    ///     normalizer.try_get(&'o'),
+    ///     Some(flag)
+    ///         if flag.long() == "output" && matches!(flag.short(), Some(c) if *c == 'o')
+    /// ));
+    /// ```
+    #[allow(dead_code)]
+    pub fn try_get(&self, short: &char) -> Option<NormalizedFlag> {
+        let long = self.inner.get(short)?;
+        Some(NormalizedFlag {
+            short: Some(*short),
+            long: long.to_owned(),
+        })
+    }
+}

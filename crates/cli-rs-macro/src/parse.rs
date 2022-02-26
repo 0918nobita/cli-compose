@@ -59,9 +59,10 @@ pub fn parse(input: TokenStream) -> TokenStream {
         {
             let arg_meta = #arg_meta;
             println!("arg_meta:");
-            for item in arg_meta {
+            for item in arg_meta.iter() {
                 println!("    {:?}", item);
             }
+
             let tokens = cli_rs::parse_into_tokens(#args).collect::<Vec<_>>();
             println!("tokens: {:?}", tokens);
         }
