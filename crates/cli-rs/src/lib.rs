@@ -1,4 +1,4 @@
-pub use cli_rs_macro::{parse, Arg, ArgGroup, Flag, FlagArg};
+pub use cli_rs_macro::{parse, Arg, Flag, FlagArg, Group};
 
 #[derive(Debug)]
 pub enum ArgMeta {

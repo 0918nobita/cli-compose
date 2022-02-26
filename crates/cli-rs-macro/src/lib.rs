@@ -1,9 +1,9 @@
 mod arg;
-mod arg_group;
 mod attr_meta;
 mod doc;
 mod flag;
 mod flag_arg;
+mod group;
 mod kebab_case;
 
 use std::fmt;
@@ -30,10 +30,10 @@ pub fn derive_flag_arg(input: TokenStream) -> TokenStream {
     flag_arg::derive_flag_arg(input)
 }
 
-#[proc_macro_derive(ArgGroup)]
+#[proc_macro_derive(Group)]
 /// 引数グループ
-pub fn derive_arg_group(input: TokenStream) -> TokenStream {
-    arg_group::derive_arg_group(input)
+pub fn derive_group(input: TokenStream) -> TokenStream {
+    group::derive_group(input)
 }
 
 struct ArgTypes {

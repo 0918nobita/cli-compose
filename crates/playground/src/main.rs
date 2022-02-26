@@ -1,4 +1,4 @@
-use cli_rs::{Arg, ArgGroup, Flag, FlagArg};
+use cli_rs::{Arg, Flag, FlagArg, Group};
 
 #[derive(Debug, Arg)]
 #[arg(name = "input")]
@@ -11,7 +11,7 @@ struct InputArg(String);
 struct StdinFlag;
 
 #[allow(dead_code)]
-#[derive(Debug, ArgGroup)]
+#[derive(Debug, Group)]
 enum InputGroup {
     File(InputArg),
     Stdin(StdinFlag),
@@ -27,7 +27,7 @@ struct OutputFlagArg(String);
 struct StdoutFlag;
 
 #[allow(dead_code)]
-#[derive(Debug, ArgGroup)]
+#[derive(Debug, Group)]
 enum OutputGroup {
     File(OutputFlagArg),
     Stdout(StdoutFlag),
