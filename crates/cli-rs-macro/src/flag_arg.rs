@@ -2,7 +2,7 @@ use std::fmt;
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{Attribute, Data};
+use syn::{Attribute, Data, NestedMeta};
 use thiserror::Error;
 
 use crate::{attr_meta::extract_meta, doc::extract_doc, kebab_case::upper_camel_to_kebab};
@@ -46,9 +46,9 @@ fn extract_flag_arg_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) ->
     let mut long: Option<String> = None;
     let mut short: Option<char> = None;
 
-    for metadata in extract_meta(attrs, "flag_arg") {
-        match metadata {
-            syn::NestedMeta::Meta(meta) => match meta {
+    for nested_meta in extract_meta(attrs, "flag_arg") {
+        match nested_meta {
+            NestedMeta::Meta(meta) => match meta {
                 syn::Meta::NameValue(syn::MetaNameValue { path, lit, .. }) => {
                     if path.is_ident("long") {
                         let lit = match lit {
@@ -71,7 +71,7 @@ fn extract_flag_arg_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) ->
                 }
                 _ => panic!("Metadata in #[flag_arg(..)] is invalid"),
             },
-            syn::NestedMeta::Lit(_) => {
+            NestedMeta::Lit(_) => {
                 panic!("Literals in #[flag_arg(..)] are not allowed")
             }
         }
@@ -99,9 +99,9 @@ pub fn derive_flag_arg(input: TokenStream) -> TokenStream {
         long.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
 
     quote! {
-        impl cli_rs::ToArgMeta for #struct_name {
-            fn metadata() -> cli_rs::ArgMeta {
-                cli_rs::ArgMeta::FlagArg {
+        impl cli_rs::ToArgMetadatum for #struct_name {
+            fn metadatum() -> cli_rs::ArgMetadatum {
+                cli_rs::ArgMetadatum::FlagArg {
                     long: #struct_name_kebab_case.to_owned(),
                     short: #short,
                     description: #doc.to_owned(),

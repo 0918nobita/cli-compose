@@ -1,7 +1,7 @@
 pub use cli_rs_macro::{parse, Arg, Flag, FlagArg, Group};
 
-#[derive(Debug)]
-pub enum ArgMeta {
+#[derive(Clone, Debug)]
+pub enum ArgMetadatum {
     Flag {
         long: String,
         short: Option<char>,
@@ -16,11 +16,11 @@ pub enum ArgMeta {
         name: String,
         description: String,
     },
-    ArgGroup(Vec<ArgMeta>),
+    ArgGroup(Vec<ArgMetadatum>),
 }
 
-pub trait ToArgMeta {
-    fn metadata() -> ArgMeta;
+pub trait ToArgMetadatum {
+    fn metadatum() -> ArgMetadatum;
 }
 
 pub trait AsFlagArg: Sized {
