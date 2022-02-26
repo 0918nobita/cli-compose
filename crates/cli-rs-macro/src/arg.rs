@@ -61,7 +61,7 @@ fn extract_arg_attr<'a>(attrs: impl Iterator<Item = &'a syn::Attribute> + 'a) ->
                 _ => panic!("Metadata in #[arg(..)] is invalid"),
             },
             syn::NestedMeta::Lit(_) => {
-                panic!("Literals in #[arg(..)] are not supported")
+                panic!("Literals in #[arg(..)] are not allowed")
             }
         }
     }

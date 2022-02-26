@@ -63,7 +63,7 @@ fn extract_flag_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> Fla
                 _ => panic!("Metadata in #[flag(..)] is invalid"),
             },
             syn::NestedMeta::Lit(_) => {
-                panic!("Literals in #[flag(..)] are not supported")
+                panic!("Literals in #[flag(..)] are not allowed")
             }
         }
     }

@@ -18,6 +18,7 @@ enum InputGroup {
 }
 
 #[derive(Debug, FlagArg)]
+#[flag_arg(long = "output", short = 'o')]
 /// 出力するファイルのパス
 struct OutputFlagArg(String);
 
@@ -34,6 +35,7 @@ enum OutputGroup {
 }
 
 #[derive(Flag)]
+#[flag(long = "verbose")]
 struct VerboseFlag;
 
 fn main() {

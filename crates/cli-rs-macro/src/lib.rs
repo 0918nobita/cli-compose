@@ -21,7 +21,7 @@ pub fn derive_flag(input: TokenStream) -> TokenStream {
     flag::derive_flag(input)
 }
 
-#[proc_macro_derive(FlagArg)]
+#[proc_macro_derive(FlagArg, attributes(flag_arg))]
 /// 値を要求するフラグ
 pub fn derive_flag_arg(input: TokenStream) -> TokenStream {
     flag_arg::derive_flag_arg(input)
