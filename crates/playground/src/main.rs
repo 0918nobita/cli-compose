@@ -32,6 +32,18 @@ impl Default for InputFormat {
     }
 }
 
+impl std::str::FromStr for InputFormat {
+    type Err = ();
+
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        match str {
+            "json" => Ok(InputFormat::Json),
+            "yaml" => Ok(InputFormat::Yaml),
+            _ => Err(()),
+        }
+    }
+}
+
 /// 出力するファイルのパス
 #[derive(Debug, FlagArg)]
 #[flag_arg(short = 'o')]
