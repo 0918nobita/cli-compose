@@ -1,5 +1,3 @@
-use std::fmt;
-
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{Attribute, Data, NestedMeta};
@@ -8,31 +6,30 @@ use thiserror::Error;
 use crate::{attr_meta::extract_meta, doc::extract_doc, kebab_case::upper_camel_to_kebab};
 
 #[derive(Debug, Error)]
-struct InvalidStruct;
+enum FlagArgError {
+    #[error(
+        "#[derive(FlagArg)] can only be applied to structs with single unnamed field or enums"
+    )]
+    InvalidStruct,
 
-impl fmt::Display for InvalidStruct {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "#[derive(FlagArg)] can only be applied to structs with single unnamed field"
-        )
-    }
+    #[error("Unexpected type defintion (expected: struct or enum)")]
+    UnexpectedTypeDef,
 }
 
-fn validate_struct(data: &Data) -> Result<&syn::Field, InvalidStruct> {
-    let unnamed = match data {
-        Data::Struct(syn::DataStruct {
+fn validate_struct(data_struct: &syn::DataStruct) -> Result<&syn::Field, FlagArgError> {
+    let unnamed = match data_struct {
+        syn::DataStruct {
             fields: syn::Fields::Unnamed(syn::FieldsUnnamed { unnamed, .. }),
             ..
-        }) => unnamed,
+        } => unnamed,
 
-        _ => return Err(InvalidStruct),
+        _ => return Err(FlagArgError::InvalidStruct),
     };
 
     match unnamed.iter().collect::<Vec<_>>()[..] {
         [field] => Ok(field),
 
-        _ => Err(InvalidStruct),
+        _ => Err(FlagArgError::InvalidStruct),
     }
 }
 
@@ -83,37 +80,49 @@ fn extract_flag_arg_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) ->
 pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
     let derive_input = syn::parse2::<syn::DeriveInput>(input)?;
 
-    let field = validate_struct(&derive_input.data).unwrap_or_else(|err| panic!("{}", err));
+    match &derive_input.data {
+        Data::Struct(struct_data) => {
+            let field = match validate_struct(struct_data) {
+                Ok(field) => field,
+                Err(err) => return Err(syn::Error::new_spanned(derive_input, format!("{}", err))),
+            };
 
-    let FlagArgAttr { long, short } = extract_flag_arg_attr(derive_input.attrs.iter());
-    let short = match short {
-        Some(lit) => quote! { Some(#lit) },
-        None => quote! { None },
-    };
+            let FlagArgAttr { long, short } = extract_flag_arg_attr(derive_input.attrs.iter());
+            let short = match short {
+                Some(lit) => quote! { Some(#lit) },
+                None => quote! { None },
+            };
 
-    let doc = extract_doc(derive_input.attrs.iter());
+            let doc = extract_doc(derive_input.attrs.iter());
 
-    let ty = field.ty.clone();
-    let struct_name = derive_input.ident;
-    let struct_name_kebab_case =
-        long.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
+            let ty = field.ty.clone();
+            let struct_name = derive_input.ident;
+            let struct_name_kebab_case =
+                long.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
 
-    Ok(quote! {
-        impl cli_rs::ToArgMetadatum for #struct_name {
-            fn metadatum() -> cli_rs::ArgMetadatum {
-                cli_rs::ArgMetadatum::FlagArg {
-                    long: #struct_name_kebab_case.to_owned(),
-                    short: #short,
-                    description: #doc.to_owned(),
+            Ok(quote! {
+                impl cli_rs::ToArgMetadatum for #struct_name {
+                    fn metadatum() -> cli_rs::ArgMetadatum {
+                        cli_rs::ArgMetadatum::FlagArg {
+                            long: #struct_name_kebab_case.to_owned(),
+                            short: #short,
+                            description: #doc.to_owned(),
+                        }
+                    }
                 }
-            }
-        }
 
-        impl cli_rs::AsFlagArg for #struct_name {
-            fn parse(s: &str) -> Option<Self> {
-                let val = <#ty as std::str::FromStr>::from_str(s).ok()?;
-                Some(#struct_name(val))
-            }
+                impl cli_rs::AsFlagArg for #struct_name {
+                    fn parse(s: &str) -> Option<Self> {
+                        let val = <#ty as std::str::FromStr>::from_str(s).ok()?;
+                        Some(#struct_name(val))
+                    }
+                }
+            })
         }
-    })
+        Data::Enum(_) => Ok(quote! {}),
+        _ => Err(syn::Error::new_spanned(
+            derive_input,
+            format!("{}", FlagArgError::UnexpectedTypeDef),
+        )),
+    }
 }

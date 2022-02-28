@@ -1,12 +1,12 @@
 use cli_rs::{Arg, Flag, FlagArg, Group};
 
-#[derive(Debug, Arg)]
 /// ソースファイルのパス
+#[derive(Debug, Arg)]
 struct Input(String);
 
+/// ソースコードを標準入力から読み込む
 #[derive(Debug, Flag)]
 #[flag(long = "stdin")]
-/// ソースコードを標準入力から読み込む
 struct StdinFlag;
 
 #[allow(dead_code)]
@@ -16,14 +16,30 @@ enum InputGroup {
     Stdin(StdinFlag),
 }
 
+/// ソースファイルの形式
+#[derive(Debug, FlagArg)]
+#[flag_arg(default)]
+enum InputFormat {
+    Json,
+
+    #[allow(dead_code)]
+    Yaml,
+}
+
+impl Default for InputFormat {
+    fn default() -> Self {
+        InputFormat::Json
+    }
+}
+
+/// 出力するファイルのパス
 #[derive(Debug, FlagArg)]
 #[flag_arg(short = 'o')]
-/// 出力するファイルのパス
 struct Output(String);
 
+/// 標準出力に出力する
 #[derive(Debug, Flag)]
 #[flag(long = "stdout")]
-/// 標準出力に出力する
 struct StdoutFlag;
 
 #[allow(dead_code)]
@@ -39,7 +55,11 @@ struct Verbose;
 fn main() {
     cli_rs::parse!(
         std::env::args(),
-        group { input = InputGroup, output = OutputGroup }
+        group {
+            input = InputGroup,
+            output = OutputGroup,
+        }
+        flag_arg { input_format = InputFormat }
         flag { verbose = Verbose }
     );
 }
