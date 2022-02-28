@@ -39,10 +39,7 @@ struct Verbose;
 fn main() {
     cli_rs::parse!(
         std::env::args(),
-        stdin = StdinFlag,
-        stdout = StdoutFlag,
-        input = Input,
-        verbose = Verbose,
-        output = Output,
+        group { input = InputGroup, output = OutputGroup }
+        flag { verbose = Verbose }
     );
 }
