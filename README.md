@@ -43,11 +43,13 @@ struct Verbose;
 
 pub fn main() {
     cli_rs::parse!(
-        group:
+        group {
             input = InputGroup,
             output = OutputGroup,
-        flag:
+        }
+        flag {
             verbose = Verbose,
+        }
     );
 
     println!("Input: {:?}", input);
