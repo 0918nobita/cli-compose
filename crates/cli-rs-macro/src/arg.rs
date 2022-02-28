@@ -1,6 +1,6 @@
 use std::fmt;
 
-use proc_macro::TokenStream;
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{Data, NestedMeta};
 use thiserror::Error;
@@ -69,8 +69,8 @@ fn extract_arg_attr<'a>(attrs: impl Iterator<Item = &'a syn::Attribute> + 'a) ->
     ArgAttr { name }
 }
 
-pub fn derive_arg(input: TokenStream) -> TokenStream {
-    let derive_input = syn::parse_macro_input!(input as syn::DeriveInput);
+pub fn derive_arg(input: TokenStream) -> syn::Result<TokenStream> {
+    let derive_input = syn::parse2::<syn::DeriveInput>(input)?;
 
     let field = validate_struct(&derive_input.data).unwrap_or_else(|err| panic!("{}", err));
 
@@ -83,7 +83,7 @@ pub fn derive_arg(input: TokenStream) -> TokenStream {
     let struct_name_kebab_case =
         name.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
 
-    quote! {
+    Ok(quote! {
         impl cli_rs::ToArgMetadatum for #struct_name {
             fn metadatum() -> cli_rs::ArgMetadatum {
                 cli_rs::ArgMetadatum::Arg {
@@ -92,6 +92,5 @@ pub fn derive_arg(input: TokenStream) -> TokenStream {
                 }
             }
         }
-    }
-    .into()
+    })
 }

@@ -1,4 +1,4 @@
-use proc_macro::TokenStream;
+use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
     parse::{Parse, ParseStream},
@@ -44,8 +44,8 @@ impl Parse for ArgTypes {
 }
 
 // TODO: ArgMeta ベクタをもとにして、トークン列をパースする
-pub fn parse(input: TokenStream) -> TokenStream {
-    let ArgTypes { args, arg_binds } = syn::parse_macro_input!(input as ArgTypes);
+pub fn parse(input: TokenStream) -> syn::Result<TokenStream> {
+    let ArgTypes { args, arg_binds } = syn::parse2::<ArgTypes>(input)?;
 
     let arg_meta = arg_binds
         .iter()
@@ -55,7 +55,7 @@ pub fn parse(input: TokenStream) -> TokenStream {
         .collect::<proc_macro2::TokenStream>();
     let arg_meta = quote! { vec![#arg_meta] };
 
-    quote! {
+    Ok(quote! {
         {
             let arg_meta = #arg_meta;
             println!("arg_meta:");
@@ -66,6 +66,5 @@ pub fn parse(input: TokenStream) -> TokenStream {
             let tokens = cli_rs::parse_into_tokens(#args).collect::<Vec<_>>();
             println!("tokens: {:?}", tokens);
         }
-    }
-    .into()
+    })
 }
