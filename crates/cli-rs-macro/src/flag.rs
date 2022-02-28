@@ -1,7 +1,7 @@
 use std::fmt;
 
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::{Attribute, Data, NestedMeta};
 use thiserror::Error;
 
@@ -33,42 +33,62 @@ struct FlagAttr {
 }
 
 // HACK: 可読性を上げたい
-fn extract_flag_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> FlagAttr {
+fn extract_flag_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> syn::Result<FlagAttr> {
     let mut long: Option<String> = None;
     let mut short: Option<char> = None;
 
     for nested_meta in extract_meta(attrs, "flag") {
-        match nested_meta {
-            NestedMeta::Meta(meta) => match meta {
-                syn::Meta::NameValue(syn::MetaNameValue { path, lit, .. }) => {
-                    if path.is_ident("long") {
-                        let lit = match lit {
-                            syn::Lit::Str(lit) => lit,
-                            _ => panic!("#[flag(long = ..)] must be a string literal"),
-                        };
-                        long = Some(lit.value());
-                    } else if path.is_ident("short") {
-                        let lit = match lit {
-                            syn::Lit::Char(lit) => lit,
-                            _ => panic!("#[flag(short = ..)] must be a char literal"),
-                        };
-                        short = Some(lit.value());
-                    } else {
-                        panic!(
-                            "Unexpected key in #[flag(..)]: {}",
-                            path.into_token_stream()
-                        );
-                    }
-                }
-                _ => panic!("Metadata in #[flag(..)] is invalid"),
-            },
-            NestedMeta::Lit(_) => {
-                panic!("Literals in #[flag(..)] are not allowed")
+        let meta = match nested_meta {
+            NestedMeta::Meta(meta) => meta,
+            _ => {
+                return Err(syn::Error::new_spanned(
+                    nested_meta,
+                    "Literals in #[flag(..)] are not allowed",
+                ))
             }
+        };
+
+        let syn::MetaNameValue { path, lit, .. } = match meta {
+            syn::Meta::NameValue(name_value) => name_value,
+            _ => {
+                return Err(syn::Error::new_spanned(
+                    meta,
+                    "Metadata in #[flag(..)] is invalid",
+                ))
+            }
+        };
+
+        if path.is_ident("long") {
+            let lit = match lit {
+                syn::Lit::Str(lit) => lit,
+                _ => {
+                    return Err(syn::Error::new_spanned(
+                        lit,
+                        "#[flag(long = ..)] must be a string literal",
+                    ))
+                }
+            };
+            long = Some(lit.value());
+        } else if path.is_ident("short") {
+            let lit = match lit {
+                syn::Lit::Char(lit) => lit,
+                _ => {
+                    return Err(syn::Error::new_spanned(
+                        lit,
+                        "#[flag(short = ..)] must be a char literal",
+                    ))
+                }
+            };
+            short = Some(lit.value());
+        } else {
+            return Err(syn::Error::new_spanned(
+                path,
+                "Unexpected key in #[flag(..)]",
+            ));
         }
     }
 
-    FlagAttr { long, short }
+    Ok(FlagAttr { long, short })
 }
 
 pub fn derive_flag(input: TokenStream) -> syn::Result<TokenStream> {
@@ -76,7 +96,7 @@ pub fn derive_flag(input: TokenStream) -> syn::Result<TokenStream> {
 
     validate_struct(&derive_input.data).unwrap_or_else(|err| panic!("{}", err));
 
-    let FlagAttr { long, short } = extract_flag_attr(derive_input.attrs.iter());
+    let FlagAttr { long, short } = extract_flag_attr(derive_input.attrs.iter())?;
     let short = match short {
         Some(lit) => quote! { Some(#lit) },
         None => quote! { None },

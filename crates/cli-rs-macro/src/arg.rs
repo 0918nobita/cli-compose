@@ -1,7 +1,7 @@
 use std::fmt;
 
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::{Data, NestedMeta};
 use thiserror::Error;
 
@@ -41,32 +41,52 @@ struct ArgAttr {
 }
 
 // HACK: 可読性を上げたい
-fn extract_arg_attr<'a>(attrs: impl Iterator<Item = &'a syn::Attribute> + 'a) -> ArgAttr {
+fn extract_arg_attr<'a>(
+    attrs: impl Iterator<Item = &'a syn::Attribute> + 'a,
+) -> syn::Result<ArgAttr> {
     let mut name: Option<String> = None;
 
     for nested_meta in extract_meta(attrs, "arg") {
-        match nested_meta {
-            NestedMeta::Meta(meta) => match meta {
-                syn::Meta::NameValue(syn::MetaNameValue { path, lit, .. }) => {
-                    if path.is_ident("name") {
-                        let lit = match lit {
-                            syn::Lit::Str(lit) => lit,
-                            _ => panic!("#[arg(name = ..)] must be a string literal"),
-                        };
-                        name = Some(lit.value());
-                    } else {
-                        panic!("Unexpected key in #[arg(..)]: {}", path.into_token_stream());
-                    }
-                }
-                _ => panic!("Metadata in #[arg(..)] is invalid"),
-            },
-            NestedMeta::Lit(_) => {
-                panic!("Literals in #[arg(..)] are not allowed")
+        let meta = match nested_meta {
+            NestedMeta::Meta(meta) => meta,
+            _ => {
+                return Err(syn::Error::new_spanned(
+                    nested_meta,
+                    "Literals in #[arg(..)] are not allowed",
+                ))
             }
+        };
+
+        let syn::MetaNameValue { path, lit, .. } = match meta {
+            syn::Meta::NameValue(name_value) => name_value,
+            _ => {
+                return Err(syn::Error::new_spanned(
+                    meta,
+                    "Metadata in #[arg(..)] is invalid",
+                ))
+            }
+        };
+
+        if path.is_ident("name") {
+            let lit = match lit {
+                syn::Lit::Str(lit) => lit,
+                _ => {
+                    return Err(syn::Error::new_spanned(
+                        lit,
+                        "#[arg(name = ..)] must be a string literal",
+                    ))
+                }
+            };
+            name = Some(lit.value());
+        } else {
+            return Err(syn::Error::new_spanned(
+                path,
+                "Unexpected key in #[arg(..)]",
+            ));
         }
     }
 
-    ArgAttr { name }
+    Ok(ArgAttr { name })
 }
 
 pub fn derive_arg(input: TokenStream) -> syn::Result<TokenStream> {
@@ -74,7 +94,7 @@ pub fn derive_arg(input: TokenStream) -> syn::Result<TokenStream> {
 
     let field = validate_struct(&derive_input.data).unwrap_or_else(|err| panic!("{}", err));
 
-    let ArgAttr { name } = extract_arg_attr(derive_input.attrs.iter());
+    let ArgAttr { name } = extract_arg_attr(derive_input.attrs.iter())?;
 
     let doc = extract_doc(derive_input.attrs.iter());
 

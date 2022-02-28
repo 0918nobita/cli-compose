@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 use syn::{Attribute, Data, NestedMeta};
 use thiserror::Error;
 
@@ -39,42 +39,64 @@ struct FlagArgAttr {
 }
 
 // HACK: 可読性を上げたい
-fn extract_flag_arg_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> FlagArgAttr {
+fn extract_flag_arg_attr<'a>(
+    attrs: impl Iterator<Item = &'a Attribute> + 'a,
+) -> syn::Result<FlagArgAttr> {
     let mut long: Option<String> = None;
     let mut short: Option<char> = None;
 
     for nested_meta in extract_meta(attrs, "flag_arg") {
-        match nested_meta {
-            NestedMeta::Meta(meta) => match meta {
-                syn::Meta::NameValue(syn::MetaNameValue { path, lit, .. }) => {
-                    if path.is_ident("long") {
-                        let lit = match lit {
-                            syn::Lit::Str(lit) => lit,
-                            _ => panic!("#[flag_arg(long = ..)] must be a string literal"),
-                        };
-                        long = Some(lit.value());
-                    } else if path.is_ident("short") {
-                        let lit = match lit {
-                            syn::Lit::Char(lit) => lit,
-                            _ => panic!("#[flag_arg(short = ..)] must be a char literal"),
-                        };
-                        short = Some(lit.value());
-                    } else {
-                        panic!(
-                            "Unexpected key in #[flag_arg(..)]: {}",
-                            path.into_token_stream()
-                        );
-                    }
-                }
-                _ => panic!("Metadata in #[flag_arg(..)] is invalid"),
-            },
-            NestedMeta::Lit(_) => {
-                panic!("Literals in #[flag_arg(..)] are not allowed")
+        let meta = match nested_meta {
+            NestedMeta::Meta(meta) => meta,
+            _ => {
+                return Err(syn::Error::new_spanned(
+                    nested_meta,
+                    "Literals in #[flag_arg(..)] are not allowed",
+                ))
             }
+        };
+
+        let syn::MetaNameValue { path, lit, .. } = match meta {
+            syn::Meta::NameValue(name_value) => name_value,
+            _ => {
+                return Err(syn::Error::new_spanned(
+                    meta,
+                    "Metadata in #[flag_arg(..)] is invalid",
+                ))
+            }
+        };
+
+        if path.is_ident("long") {
+            let lit = match lit {
+                syn::Lit::Str(lit) => lit,
+                _ => {
+                    return Err(syn::Error::new_spanned(
+                        lit,
+                        "#[flag_arg(long = ..)] must be a string literal",
+                    ))
+                }
+            };
+            long = Some(lit.value());
+        } else if path.is_ident("short") {
+            let lit = match lit {
+                syn::Lit::Char(lit) => lit,
+                _ => {
+                    return Err(syn::Error::new_spanned(
+                        lit,
+                        "#[flag_arg(short = ..)] must be a char literal",
+                    ))
+                }
+            };
+            short = Some(lit.value());
+        } else {
+            return Err(syn::Error::new_spanned(
+                path,
+                "Unexpected key in #[flag_arg(..)]",
+            ));
         }
     }
 
-    FlagArgAttr { long, short }
+    Ok(FlagArgAttr { long, short })
 }
 
 pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
@@ -87,7 +109,7 @@ pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
                 Err(err) => return Err(syn::Error::new_spanned(derive_input, format!("{}", err))),
             };
 
-            let FlagArgAttr { long, short } = extract_flag_arg_attr(derive_input.attrs.iter());
+            let FlagArgAttr { long, short } = extract_flag_arg_attr(derive_input.attrs.iter())?;
             let short = match short {
                 Some(lit) => quote! { Some(#lit) },
                 None => quote! { None },
