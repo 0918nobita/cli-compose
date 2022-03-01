@@ -155,13 +155,6 @@ pub struct FlagNormalizer {
 
 impl FlagNormalizer {
     /// short フラグと long フラグの対応を追加する
-    ///
-    /// ```rust
-    /// let mut normalizer = cli_rs::FlagNormalizer::default();
-    /// assert!(normalizer.try_add(&'o', "output").is_ok());
-    /// assert!(normalizer.try_add(&'v', "version").is_ok());
-    /// assert!(normalizer.try_add(&'o', "output").is_err());
-    /// ```
     #[allow(dead_code)]
     pub fn try_add(&mut self, short: &char, long: &str) -> Result<(), FlagError> {
         if let Some(dup_long) = self.inner.get(short) {
@@ -178,16 +171,6 @@ impl FlagNormalizer {
     }
 
     /// short フラグをもとに正規化されたフラグを得る
-    ///
-    /// ```rust
-    /// let mut normalizer = cli_rs::FlagNormalizer::default();
-    /// assert!(normalizer.try_add(&'o', "output").is_ok());
-    /// assert!(matches!(
-    ///     normalizer.try_get(&'o'),
-    ///     Some(flag)
-    ///         if flag.long() == "output" && matches!(flag.short(), Some(c) if *c == 'o')
-    /// ));
-    /// ```
     #[allow(dead_code)]
     pub fn try_get(&self, short: &char) -> Option<NormalizedFlag> {
         let long = self.inner.get(short)?;
@@ -195,5 +178,29 @@ impl FlagNormalizer {
             short: Some(*short),
             long: long.to_owned(),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::FlagNormalizer;
+
+    #[test]
+    fn test_try_add() {
+        let mut normalizer = FlagNormalizer::default();
+        assert!(normalizer.try_add(&'o', "output").is_ok());
+        assert!(normalizer.try_add(&'v', "version").is_ok());
+        assert!(normalizer.try_add(&'o', "output").is_err());
+    }
+
+    #[test]
+    fn test_try_get() {
+        let mut normalizer = FlagNormalizer::default();
+        assert!(normalizer.try_add(&'o', "output").is_ok());
+        assert!(matches!(
+            normalizer.try_get(&'o'),
+            Some(flag)
+                if flag.long() == "output" && matches!(flag.short(), Some(c) if *c == 'o')
+        ));
     }
 }
