@@ -2,13 +2,13 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
-    Expr, Pat, Path, Token,
+    Expr, Pat, Token, TypePath,
 };
 
 #[derive(Clone)]
 struct ArgBind {
     pat: Pat,
-    path: Path,
+    path: TypePath,
 }
 
 impl Parse for ArgBind {
@@ -17,7 +17,7 @@ impl Parse for ArgBind {
 
         input.parse::<Token![=]>()?;
 
-        let path = input.parse::<Path>()?;
+        let path = input.parse::<TypePath>()?;
 
         Ok(Self { pat, path })
     }
