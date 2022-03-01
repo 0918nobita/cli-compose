@@ -91,7 +91,8 @@ impl Parse for ArgTypes {
         input.parse::<Token![,]>()?;
 
         let mut arg_bind_groups = Vec::<ArgBindGroup>::new();
-        while let Ok(arg_bind_group) = input.parse::<ArgBindGroup>() {
+        while !input.is_empty() {
+            let arg_bind_group = input.parse::<ArgBindGroup>()?;
             arg_bind_groups.push(arg_bind_group);
         }
 
