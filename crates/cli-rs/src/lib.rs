@@ -1,30 +1,33 @@
 pub use cli_rs_macro::{parse, Arg, Flag, FlagArg, Group};
 
-#[derive(Clone, Debug)]
-pub enum ArgMetadatum {
-    Flag {
-        long: String,
-        short: Option<char>,
-        description: String,
-    },
-    FlagArg {
-        long: String,
-        short: Option<char>,
-        description: String,
-    },
-    Arg {
-        name: String,
-        description: String,
-    },
-    ArgGroup(Vec<ArgMetadatum>),
+pub trait AsArg: Sized {
+    fn name() -> String;
+
+    fn description() -> String;
 }
 
-pub trait ToArgMetadatum {
-    fn metadatum() -> ArgMetadatum;
+pub trait AsFlag: Sized {
+    fn long() -> String;
+
+    fn short() -> Option<char>;
+
+    fn description() -> String;
 }
 
 pub trait AsFlagArg: Sized {
+    fn long() -> String;
+
+    fn short() -> Option<char>;
+
+    fn description() -> String;
+
     fn parse(s: &str) -> Option<Self>;
+}
+
+pub trait AsGroup: Sized {
+    fn name() -> String;
+
+    fn description() -> String;
 }
 
 #[derive(Debug)]
@@ -51,8 +54,27 @@ mod hygienic_macro {
     #[macro_export]
     macro_rules! parse2 {
         ( $args:expr, ) => {};
-        ( $args:expr, $group_name:ident { $( $p:pat = $ty:ty ),* $(,)? } $( $rest:tt )* ) => {
-            println!("{}:", stringify!($group_name));
+
+        ( $args:expr, arg { $( $p:pat = $ty:ty ),* $(,)? } $( $rest:tt )* ) => {
+            println!("[Arguments]");
+            $( println!("    {}", stringify!($ty)); )*
+            cli_rs::parse2!($args, $( $rest )*);
+        };
+
+        ( $args:expr, flag { $( $p:pat = $ty:ty ),* $(,)? } $( $rest:tt )* ) => {
+            println!("[Flags]");
+            $( println!("    {}", stringify!($ty)); )*
+            cli_rs::parse2!($args, $( $rest )*);
+        };
+
+        ( $args:expr, flag_arg { $( $p:pat = $ty:ty ),* $(,)? } $( $rest:tt )* ) => {
+            println!("[Flag arguments]");
+            $( println!("    {}", stringify!($ty)); )*
+            cli_rs::parse2!($args, $( $rest )*);
+        };
+
+        ( $args:expr, group { $( $p:pat = $ty:ty ),* $(,)? } $( $rest:tt )* ) => {
+            println!("[Groups]");
             $( println!("    {}", stringify!($ty)); )*
             cli_rs::parse2!($args, $( $rest )*);
         };

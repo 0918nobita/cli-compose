@@ -104,12 +104,13 @@ pub fn derive_arg(input: TokenStream) -> syn::Result<TokenStream> {
         name.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
 
     Ok(quote! {
-        impl cli_rs::ToArgMetadatum for #struct_name {
-            fn metadatum() -> cli_rs::ArgMetadatum {
-                cli_rs::ArgMetadatum::Arg {
-                    name: #struct_name_kebab_case.to_owned(),
-                    description: #doc.to_owned(),
-                }
+        impl cli_rs::AsArg for #struct_name {
+            fn name() -> String {
+                #struct_name_kebab_case.to_owned()
+            }
+
+            fn description() -> String {
+                #doc.to_owned()
             }
         }
     })

@@ -67,28 +67,32 @@ struct Verbose;
 fn main() {
     cli_rs::parse!(
         std::env::args(),
-        group {
-            input = InputGroup,
-            output = OutputGroup,
-        }
-        flag_arg { input_format = InputFormat }
-        flag { verbose = Verbose }
-    );
-
-    // Hygienic version (experimental)
-    /*
-    cli_rs::parse2!(
-        std::env::args(),
-        group {
-            input = InputGroup,
-            output = OutputGroup,
+        arg {
+            input = Input,
         }
         flag_arg {
             input_format = InputFormat,
+            output = Output,
         }
         flag {
             verbose = Verbose,
         }
     );
-    */
+
+    println!();
+
+    // Hygienic version (experimental)
+    cli_rs::parse2!(
+        std::env::args(),
+        arg {
+            input = Input,
+        }
+        flag_arg {
+            input_format = InputFormat,
+            output = Output,
+        }
+        flag {
+            verbose = Verbose,
+        }
+    );
 }

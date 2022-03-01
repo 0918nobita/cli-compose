@@ -50,10 +50,10 @@ impl TryFrom<syn::Ident> for ArgKind {
 impl ToString for ArgKind {
     fn to_string(&self) -> String {
         match self {
-            Self::Arg => "arg",
-            Self::Flag => "flag",
-            Self::FlagArg => "flag_arg",
-            Self::Group => "group",
+            Self::Arg => "Arguments",
+            Self::Flag => "Flags",
+            Self::FlagArg => "Flag arguments",
+            Self::Group => "Groups",
         }
         .to_owned()
     }
@@ -103,7 +103,6 @@ impl Parse for ArgTypes {
     }
 }
 
-// TODO: ArgMeta ベクタをもとにして、トークン列をパースする
 pub fn parse(input: TokenStream) -> syn::Result<TokenStream> {
     let ArgTypes {
         args,
@@ -113,12 +112,40 @@ pub fn parse(input: TokenStream) -> syn::Result<TokenStream> {
     let mut dump_code = TokenStream::new();
 
     for ArgBindGroup { kind, binds } in arg_bind_groups {
-        let kind = kind.to_string();
-        dump_code.extend(quote! { println!("{}:", #kind); });
+        let kind_str = kind.to_string();
+        dump_code.extend(quote! { println!("[{}]", #kind_str); });
 
         for ArgBind { pat: _pat, path } in binds {
-            let path = path.to_token_stream().to_string();
-            dump_code.extend(quote! { println!("    {}", #path); });
+            let path_str = path.to_token_stream().to_string();
+
+            dump_code.extend(match kind {
+                ArgKind::Arg => quote! {
+                    println!("    {}: {}", <#path as cli_rs::AsArg>::name(), <#path as cli_rs::AsArg>::description());
+                },
+
+                ArgKind::Flag => quote! {
+                    let names = if let Some(short) = <#path as cli_rs::AsFlag>::short() {
+                        format!("-{}, --{}", short, <#path as cli_rs::AsFlag>::long())
+                    } else {
+                        format!("--{}", <#path as cli_rs::AsFlag>::long())
+                    };
+                    println!("    {}: {}", names, <#path as cli_rs::AsFlag>::description());
+                },
+
+                ArgKind::FlagArg => quote! {
+                    let names = if let Some(short) = <#path as cli_rs::AsFlagArg>::short() {
+                        format!("-{}, --{}", short, <#path as cli_rs::AsFlagArg>::long())
+                    } else {
+                        format!("--{}", <#path as cli_rs::AsFlagArg>::long())
+                    };
+                    println!("    {}: {}", names, <#path as cli_rs::AsFlagArg>::description());
+                },
+
+                ArgKind::Group => quote! {
+                    println!("    {}", #path_str);
+                },
+            });
+            dump_code.extend(quote! { println!(); });
         }
     }
 

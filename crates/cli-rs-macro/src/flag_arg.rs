@@ -58,6 +58,12 @@ fn extract_flag_arg_attr<'a>(
 
         let syn::MetaNameValue { path, lit, .. } = match meta {
             syn::Meta::NameValue(name_value) => name_value,
+
+            // TODO: default を指定した場合のコード生成を実装する
+            syn::Meta::Path(path) if path.is_ident("default") => {
+                continue;
+            }
+
             _ => {
                 return Err(syn::Error::new_spanned(
                     meta,
@@ -123,17 +129,19 @@ pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
                 long.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
 
             Ok(quote! {
-                impl cli_rs::ToArgMetadatum for #struct_name {
-                    fn metadatum() -> cli_rs::ArgMetadatum {
-                        cli_rs::ArgMetadatum::FlagArg {
-                            long: #struct_name_kebab_case.to_owned(),
-                            short: #short,
-                            description: #doc.to_owned(),
-                        }
-                    }
-                }
-
                 impl cli_rs::AsFlagArg for #struct_name {
+                    fn long() -> String {
+                        #struct_name_kebab_case.to_owned()
+                    }
+
+                    fn short() -> Option<char> {
+                        #short
+                    }
+
+                    fn description() -> String {
+                        #doc.to_owned()
+                    }
+
                     fn parse(s: &str) -> Option<Self> {
                         let val = <#ty as std::str::FromStr>::from_str(s).ok()?;
                         Some(#struct_name(val))
@@ -141,7 +149,41 @@ pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
                 }
             })
         }
-        Data::Enum(_) => Ok(quote! {}),
+
+        Data::Enum(_) => {
+            let FlagArgAttr { long, short } = extract_flag_arg_attr(derive_input.attrs.iter())?;
+            let short = match short {
+                Some(lit) => quote! { Some(#lit) },
+                None => quote! { None },
+            };
+
+            let doc = extract_doc(derive_input.attrs.iter());
+
+            let enum_name = derive_input.ident;
+            let enum_name_kebab_case =
+                long.unwrap_or_else(|| upper_camel_to_kebab(&enum_name.to_string()));
+
+            Ok(quote! {
+                impl cli_rs::AsFlagArg for #enum_name {
+                    fn long() -> String {
+                        #enum_name_kebab_case.to_owned()
+                    }
+
+                    fn short() -> Option<char> {
+                        #short
+                    }
+
+                    fn description() -> String {
+                        #doc.to_owned()
+                    }
+
+                    fn parse(s: &str) -> Option<Self> {
+                        <#enum_name as std::str::FromStr>::from_str(s).ok()
+                    }
+                }
+            })
+        }
+
         _ => Err(syn::Error::new_spanned(
             derive_input,
             format!("{}", FlagArgError::UnexpectedTypeDef),

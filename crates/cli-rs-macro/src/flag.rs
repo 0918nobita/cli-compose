@@ -109,13 +109,17 @@ pub fn derive_flag(input: TokenStream) -> syn::Result<TokenStream> {
         long.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
 
     Ok(quote! {
-        impl cli_rs::ToArgMetadatum for #struct_name {
-            fn metadatum() -> cli_rs::ArgMetadatum {
-                cli_rs::ArgMetadatum::Flag {
-                    long: #struct_name_kebab_case.to_owned(),
-                    short: #short,
-                    description: #doc.to_owned(),
-                }
+        impl cli_rs::AsFlag for #struct_name {
+            fn long() -> String {
+                #struct_name_kebab_case.to_owned()
+            }
+
+            fn short() -> Option<char> {
+                #short
+            }
+
+            fn description() -> String {
+                #doc.to_owned()
             }
         }
     })
