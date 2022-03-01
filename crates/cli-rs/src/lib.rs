@@ -51,7 +51,7 @@ mod hygienic_macro {
     #[macro_export]
     macro_rules! parse2 {
         ( $args:expr, ) => {};
-        ( $args:expr, $group_name:ident { $( $p:pat = $ty:ty ),* } $( $rest:tt )* ) => {
+        ( $args:expr, $group_name:ident { $( $p:pat = $ty:ty ),* $(,)? } $( $rest:tt )* ) => {
             println!("{}", stringify!($group_name));
             cli_rs::parse2!($args, $( $rest )*);
         };
