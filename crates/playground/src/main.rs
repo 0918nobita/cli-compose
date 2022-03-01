@@ -76,6 +76,7 @@ fn main() {
     );
 
     // Hygienic version (experimental)
+    /*
     cli_rs::parse2!(
         std::env::args(),
         group {
@@ -89,4 +90,5 @@ fn main() {
             verbose = Verbose,
         }
     );
+    */
 }
