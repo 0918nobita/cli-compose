@@ -45,3 +45,13 @@ pub fn parse_into_tokens(args: impl Iterator<Item = String>) -> impl Iterator<It
         vec![Token::Value(arg)]
     })
 }
+
+// Experimental
+mod hygienic_macro {
+    #[macro_export]
+    macro_rules! parse2 {
+        ( $args:expr, $( $group_name:ident { $( $p:pat = $ty:ty ),* } )* ) => {
+            cli_rs::parse!($args,);
+        };
+    }
+}
