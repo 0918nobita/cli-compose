@@ -1,4 +1,34 @@
+use std::fmt::{Display, Formatter, Result as FmtResult};
+
 pub use cli_rs_macro::{parse, Arg, Flag, FlagArg, Group};
+
+pub struct LongFlag(String);
+
+impl LongFlag {
+    pub fn new(s: &str) -> Self {
+        Self(s.to_owned())
+    }
+}
+
+impl Display for LongFlag {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "--{}", self.0)
+    }
+}
+
+pub struct ShortFlag(char);
+
+impl ShortFlag {
+    pub fn new(c: char) -> Self {
+        Self(c)
+    }
+}
+
+impl Display for ShortFlag {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "-{}", self.0)
+    }
+}
 
 pub trait AsArg: Sized {
     fn name() -> String;
@@ -7,17 +37,17 @@ pub trait AsArg: Sized {
 }
 
 pub trait AsFlag: Sized {
-    fn long() -> String;
+    fn long() -> LongFlag;
 
-    fn short() -> Option<char>;
+    fn short() -> Option<ShortFlag>;
 
     fn description() -> String;
 }
 
 pub trait AsFlagArg: Sized {
-    fn long() -> String;
+    fn long() -> LongFlag;
 
-    fn short() -> Option<char>;
+    fn short() -> Option<ShortFlag>;
 
     fn description() -> String;
 

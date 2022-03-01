@@ -36,9 +36,13 @@ impl TryFrom<syn::Ident> for ArgKind {
     fn try_from(ident: syn::Ident) -> Result<Self, Self::Error> {
         match &*ident.to_string() {
             "arg" => Ok(Self::Arg),
+
             "flag" => Ok(Self::Flag),
+
             "flag_arg" => Ok(Self::FlagArg),
+
             "group" => Ok(Self::Group),
+
             _ => Err(syn::Error::new_spanned(
                 ident,
                 "expected `arg`, `flag`, `flag_arg`, or `group`",
@@ -51,8 +55,11 @@ impl ToString for ArgKind {
     fn to_string(&self) -> String {
         match self {
             Self::Arg => "Arguments",
+
             Self::Flag => "Flags",
+
             Self::FlagArg => "Flag arguments",
+
             Self::Group => "Groups",
         }
         .to_owned()
@@ -67,14 +74,18 @@ struct ArgBindGroup {
 impl Parse for ArgBindGroup {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let ident = input.parse::<syn::Ident>()?;
+
         let kind = ArgKind::try_from(ident)?;
+
         let content;
         syn::braced!(content in input);
+
         let binds = content
             .parse_terminated::<ArgBind, Token![,]>(ArgBind::parse)?
             .iter()
             .cloned()
             .collect::<Vec<_>>();
+
         Ok(Self { kind, binds })
     }
 }
@@ -125,18 +136,18 @@ pub fn parse(input: TokenStream) -> syn::Result<TokenStream> {
 
                 ArgKind::Flag => quote! {
                     let names = if let Some(short) = <#path as cli_rs::AsFlag>::short() {
-                        format!("-{}, --{}", short, <#path as cli_rs::AsFlag>::long())
+                        format!("{}, {}", short, <#path as cli_rs::AsFlag>::long())
                     } else {
-                        format!("--{}", <#path as cli_rs::AsFlag>::long())
+                        format!("{}", <#path as cli_rs::AsFlag>::long())
                     };
                     println!("    {}: {}", names, <#path as cli_rs::AsFlag>::description());
                 },
 
                 ArgKind::FlagArg => quote! {
                     let names = if let Some(short) = <#path as cli_rs::AsFlagArg>::short() {
-                        format!("-{}, --{}", short, <#path as cli_rs::AsFlagArg>::long())
+                        format!("{}, {}", short, <#path as cli_rs::AsFlagArg>::long())
                     } else {
-                        format!("--{}", <#path as cli_rs::AsFlagArg>::long())
+                        format!("{}", <#path as cli_rs::AsFlagArg>::long())
                     };
                     println!("    {}: {}", names, <#path as cli_rs::AsFlagArg>::description());
                 },
@@ -145,6 +156,7 @@ pub fn parse(input: TokenStream) -> syn::Result<TokenStream> {
                     println!("    {}", #path_str);
                 },
             });
+
             dump_code.extend(quote! { println!(); });
         }
     }

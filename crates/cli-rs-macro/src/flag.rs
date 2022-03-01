@@ -98,7 +98,7 @@ pub fn derive_flag(input: TokenStream) -> syn::Result<TokenStream> {
 
     let FlagAttr { long, short } = extract_flag_attr(derive_input.attrs.iter())?;
     let short = match short {
-        Some(lit) => quote! { Some(#lit) },
+        Some(lit) => quote! { Some(cli_rs::ShortFlag::new(#lit)) },
         None => quote! { None },
     };
 
@@ -110,11 +110,11 @@ pub fn derive_flag(input: TokenStream) -> syn::Result<TokenStream> {
 
     Ok(quote! {
         impl cli_rs::AsFlag for #struct_name {
-            fn long() -> String {
-                #struct_name_kebab_case.to_owned()
+            fn long() -> cli_rs::LongFlag {
+                cli_rs::LongFlag::new(#struct_name_kebab_case)
             }
 
-            fn short() -> Option<char> {
+            fn short() -> Option<cli_rs::ShortFlag> {
                 #short
             }
 

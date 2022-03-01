@@ -79,9 +79,10 @@ fn main() {
         }
     );
 
+    /*
     println!();
 
-    // Hygienic version (experimental)
+    // 健全マクロを使うバージョン
     cli_rs::parse2!(
         std::env::args(),
         arg {
@@ -95,4 +96,5 @@ fn main() {
             verbose = Verbose,
         }
     );
+    */
 }

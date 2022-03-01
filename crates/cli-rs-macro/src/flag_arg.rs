@@ -117,7 +117,7 @@ pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
 
             let FlagArgAttr { long, short } = extract_flag_arg_attr(derive_input.attrs.iter())?;
             let short = match short {
-                Some(lit) => quote! { Some(#lit) },
+                Some(lit) => quote! { Some(cli_rs::ShortFlag::new(#lit)) },
                 None => quote! { None },
             };
 
@@ -130,11 +130,11 @@ pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
 
             Ok(quote! {
                 impl cli_rs::AsFlagArg for #struct_name {
-                    fn long() -> String {
-                        #struct_name_kebab_case.to_owned()
+                    fn long() -> cli_rs::LongFlag {
+                        cli_rs::LongFlag::new(#struct_name_kebab_case)
                     }
 
-                    fn short() -> Option<char> {
+                    fn short() -> Option<cli_rs::ShortFlag> {
                         #short
                     }
 
@@ -153,7 +153,7 @@ pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
         Data::Enum(_) => {
             let FlagArgAttr { long, short } = extract_flag_arg_attr(derive_input.attrs.iter())?;
             let short = match short {
-                Some(lit) => quote! { Some(#lit) },
+                Some(lit) => quote! { Some(cli_rs::ShortFlag::new(#lit)) },
                 None => quote! { None },
             };
 
@@ -165,11 +165,11 @@ pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
 
             Ok(quote! {
                 impl cli_rs::AsFlagArg for #enum_name {
-                    fn long() -> String {
-                        #enum_name_kebab_case.to_owned()
+                    fn long() -> cli_rs::LongFlag {
+                        cli_rs::LongFlag::new(#enum_name_kebab_case)
                     }
 
-                    fn short() -> Option<char> {
+                    fn short() -> Option<cli_rs::ShortFlag> {
                         #short
                     }
 
