@@ -35,10 +35,10 @@ impl TryFrom<syn::Ident> for ArgKind {
 
     fn try_from(ident: syn::Ident) -> Result<Self, Self::Error> {
         match &*ident.to_string() {
-            "arg" => Ok(ArgKind::Arg),
-            "flag" => Ok(ArgKind::Flag),
-            "flag_arg" => Ok(ArgKind::FlagArg),
-            "group" => Ok(ArgKind::Group),
+            "arg" => Ok(Self::Arg),
+            "flag" => Ok(Self::Flag),
+            "flag_arg" => Ok(Self::FlagArg),
+            "group" => Ok(Self::Group),
             _ => Err(syn::Error::new_spanned(
                 ident,
                 "expected `arg`, `flag`, `flag_arg`, or `group`",
