@@ -1,6 +1,8 @@
 [package]
 name = "playground"
 version = "0.1.0"
+authors = ["Kodai Matsumoto <nobita.0918@gmail.com>"]
+license = "MIT"
 edition = "2021"
 
 [dependencies]
