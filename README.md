@@ -11,7 +11,7 @@ clap クレートの Derive API が単一の struct または enum に対する 
 ↓初回リリースでは以下のように動作することを目指しています。
 
 ```rust
-use cli_rs::{Arg, FlagArg, Flag, Group};
+use cli_rs::{Arg, FlagArg, Flag, FromKebabStr, Group};
 
 // ドキュメンテーションコメントはヘルプメッセージとして扱われます
 
@@ -37,7 +37,7 @@ enum InputGroup {
 // #[flag_arg(default)]: このフラグ引数が省略された場合、デフォルト値が返ります
 
 /// ソースファイルの形式
-#[derive(Debug, FlagArg)]
+#[derive(Debug, FlagArg, FromKebabStr)]
 #[flag_arg(default)]
 enum InputFormat {
     Json,
