@@ -9,6 +9,11 @@ mod parse;
 
 use proc_macro::TokenStream;
 
+#[proc_macro_derive(FromKebabStr)]
+pub fn derive_from_kebab_str(_: TokenStream) -> TokenStream {
+    quote::quote! {}.into()
+}
+
 /// コマンドライン引数
 #[proc_macro_derive(Arg, attributes(arg))]
 pub fn derive_arg(input: TokenStream) -> TokenStream {

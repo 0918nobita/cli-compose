@@ -2,7 +2,7 @@
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-pub use cli_rs_macro::{parse, Arg, Flag, FlagArg, Group};
+pub use cli_rs_macro::{parse, Arg, Flag, FlagArg, FromKebabStr, Group};
 
 pub struct LongFlag(String);
 
