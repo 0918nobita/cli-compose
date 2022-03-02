@@ -78,23 +78,4 @@ fn main() {
             verbose = Verbose,
         }
     );
-
-    /*
-    println!();
-
-    // 健全マクロを使うバージョン
-    cli_rs::parse2!(
-        std::env::args(),
-        arg {
-            input = Input,
-        }
-        flag_arg {
-            input_format = InputFormat,
-            output = Output,
-        }
-        flag {
-            verbose = Verbose,
-        }
-    );
-    */
 }

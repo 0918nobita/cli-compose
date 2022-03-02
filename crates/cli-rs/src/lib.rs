@@ -1,3 +1,5 @@
+//! CLI 開発支援ライブラリ
+
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 pub use cli_rs_macro::{parse, Arg, Flag, FlagArg, Group};
@@ -77,36 +79,4 @@ pub fn parse_into_tokens(args: impl Iterator<Item = String>) -> impl Iterator<It
         }
         vec![Token::Value(arg)]
     })
-}
-
-// Experimental
-mod hygienic_macro {
-    #[macro_export]
-    macro_rules! parse2 {
-        ( $args:expr, ) => {};
-
-        ( $args:expr, arg { $( $p:pat = $ty:ty ),* $(,)? } $( $rest:tt )* ) => {
-            println!("[Arguments]");
-            $( println!("    {}", stringify!($ty)); )*
-            cli_rs::parse2!($args, $( $rest )*);
-        };
-
-        ( $args:expr, flag { $( $p:pat = $ty:ty ),* $(,)? } $( $rest:tt )* ) => {
-            println!("[Flags]");
-            $( println!("    {}", stringify!($ty)); )*
-            cli_rs::parse2!($args, $( $rest )*);
-        };
-
-        ( $args:expr, flag_arg { $( $p:pat = $ty:ty ),* $(,)? } $( $rest:tt )* ) => {
-            println!("[Flag arguments]");
-            $( println!("    {}", stringify!($ty)); )*
-            cli_rs::parse2!($args, $( $rest )*);
-        };
-
-        ( $args:expr, group { $( $p:pat = $ty:ty ),* $(,)? } $( $rest:tt )* ) => {
-            println!("[Groups]");
-            $( println!("    {}", stringify!($ty)); )*
-            cli_rs::parse2!($args, $( $rest )*);
-        };
-    }
 }
