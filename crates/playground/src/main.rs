@@ -1,4 +1,4 @@
-use cli_rs::{Arg, Flag, FlagArg, Group};
+use cli_rs::{Arg, Flag, FlagArg, FromKebabStr, Group};
 
 /// ソースファイルのパス
 #[derive(Debug, Arg)]
@@ -17,7 +17,7 @@ enum InputGroup {
 }
 
 /// ソースファイルの形式
-#[derive(Debug, FlagArg)]
+#[derive(Debug, FlagArg, FromKebabStr)]
 #[flag_arg(default)]
 enum InputFormat {
     Json,
@@ -29,18 +29,6 @@ enum InputFormat {
 impl Default for InputFormat {
     fn default() -> Self {
         InputFormat::Json
-    }
-}
-
-impl std::str::FromStr for InputFormat {
-    type Err = ();
-
-    fn from_str(str: &str) -> Result<Self, Self::Err> {
-        match str {
-            "json" => Ok(InputFormat::Json),
-            "yaml" => Ok(InputFormat::Yaml),
-            _ => Err(()),
-        }
     }
 }
 

@@ -1,7 +1,6 @@
 use std::fmt;
 
 use proc_macro2::TokenStream;
-use quote::quote;
 use syn::{Data, NestedMeta};
 use thiserror::Error;
 
@@ -103,7 +102,7 @@ pub fn derive_arg(input: TokenStream) -> syn::Result<TokenStream> {
     let struct_name_kebab_case =
         name.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
 
-    Ok(quote! {
+    Ok(quote::quote! {
         impl cli_rs::AsArg for #struct_name {
             fn name() -> String {
                 #struct_name_kebab_case.to_owned()
