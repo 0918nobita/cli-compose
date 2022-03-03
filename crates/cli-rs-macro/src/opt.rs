@@ -12,7 +12,7 @@ struct InvalidStruct;
 
 impl fmt::Display for InvalidStruct {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "#[derive(Flag)] can only be applied to empty structs")
+        write!(f, "#[derive(Opt)] can only be applied to empty structs")
     }
 }
 
@@ -27,23 +27,23 @@ fn validate_struct(data: &Data) -> Result<(), InvalidStruct> {
     }
 }
 
-struct FlagAttr {
+struct OptAttr {
     long: Option<String>,
     short: Option<char>,
 }
 
 // HACK: 可読性を上げたい
-fn extract_flag_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> syn::Result<FlagAttr> {
+fn extract_opt_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> syn::Result<OptAttr> {
     let mut long: Option<String> = None;
     let mut short: Option<char> = None;
 
-    for nested_meta in extract_meta(attrs, "flag") {
+    for nested_meta in extract_meta(attrs, "opt") {
         let meta = match nested_meta {
             NestedMeta::Meta(meta) => meta,
             _ => {
                 return Err(syn::Error::new_spanned(
                     nested_meta,
-                    "Literals in #[flag(..)] are not allowed",
+                    "Literals in #[opt(..)] are not allowed",
                 ))
             }
         };
@@ -53,7 +53,7 @@ fn extract_flag_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> syn
             _ => {
                 return Err(syn::Error::new_spanned(
                     meta,
-                    "Metadata in #[flag(..)] is invalid",
+                    "Metadata in #[opt(..)] is invalid",
                 ))
             }
         };
@@ -64,7 +64,7 @@ fn extract_flag_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> syn
                 _ => {
                     return Err(syn::Error::new_spanned(
                         lit,
-                        "#[flag(long = ..)] must be a string literal",
+                        "#[opt(long = ..)] must be a string literal",
                     ))
                 }
             };
@@ -75,7 +75,7 @@ fn extract_flag_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> syn
                 _ => {
                     return Err(syn::Error::new_spanned(
                         lit,
-                        "#[flag(short = ..)] must be a char literal",
+                        "#[opt(short = ..)] must be a char literal",
                     ))
                 }
             };
@@ -83,20 +83,21 @@ fn extract_flag_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> syn
         } else {
             return Err(syn::Error::new_spanned(
                 path,
-                "Unexpected key in #[flag(..)]",
+                "Unexpected key in #[opt(..)]",
             ));
         }
     }
 
-    Ok(FlagAttr { long, short })
+    Ok(OptAttr { long, short })
 }
 
-pub fn derive_flag(input: TokenStream) -> syn::Result<TokenStream> {
+pub fn derive_opt(input: TokenStream) -> syn::Result<TokenStream> {
     let derive_input = syn::parse2::<syn::DeriveInput>(input)?;
 
-    validate_struct(&derive_input.data).unwrap_or_else(|err| panic!("{}", err));
+    validate_struct(&derive_input.data)
+        .map_err(|err| syn::Error::new_spanned(&derive_input, err.to_string()))?;
 
-    let FlagAttr { long, short } = extract_flag_attr(derive_input.attrs.iter())?;
+    let OptAttr { long, short } = extract_opt_attr(derive_input.attrs.iter())?;
     let short = match short {
         Some(lit) => quote! { Some(cli_rs::ShortFlag::new(#lit)) },
         None => quote! { None },
@@ -109,7 +110,7 @@ pub fn derive_flag(input: TokenStream) -> syn::Result<TokenStream> {
         long.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
 
     Ok(quote! {
-        impl cli_rs::AsFlag for #struct_name {
+        impl cli_rs::AsOpt for #struct_name {
             fn long() -> cli_rs::LongFlag {
                 cli_rs::LongFlag::new(#struct_name_kebab_case)
             }
@@ -123,12 +124,6 @@ pub fn derive_flag(input: TokenStream) -> syn::Result<TokenStream> {
             }
         }
     })
-}
-
-#[derive(Debug, Error)]
-pub enum FlagError {
-    #[error("Duplicate short flag: `{0:?} -> {1:?}` and `{0:?} -> {2:?}`")]
-    DuplicateShortFlag(char, String, String),
 }
 
 /// [`FlagNormalizer`] を使ってのみ生成可能な、正規化済みのフラグ
@@ -155,6 +150,12 @@ impl NormalizedFlag {
 #[derive(Default)]
 pub struct FlagNormalizer {
     inner: std::collections::HashMap<char, String>,
+}
+
+#[derive(Debug, Error)]
+pub enum FlagError {
+    #[error("Duplicate short flag: `{0:?} -> {1:?}` and `{0:?} -> {2:?}`")]
+    DuplicateShortFlag(char, String, String),
 }
 
 impl FlagNormalizer {

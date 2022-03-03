@@ -2,7 +2,7 @@
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-pub use cli_rs_macro::{parse, Arg, Flag, FlagArg, FromKebabStr, Group};
+pub use cli_rs_macro::{parse, ArgOpt, FromKebabStr, Group, Opt, PosArg};
 
 pub struct LongFlag(String);
 
@@ -32,21 +32,13 @@ impl Display for ShortFlag {
     }
 }
 
-pub trait AsArg: Sized {
+pub trait AsPosArg: Sized {
     fn name() -> String;
 
     fn description() -> String;
 }
 
-pub trait AsFlag: Sized {
-    fn long() -> LongFlag;
-
-    fn short() -> Option<ShortFlag>;
-
-    fn description() -> String;
-}
-
-pub trait AsFlagArg: Sized {
+pub trait AsArgOpt: Sized {
     fn long() -> LongFlag;
 
     fn short() -> Option<ShortFlag>;
@@ -54,6 +46,14 @@ pub trait AsFlagArg: Sized {
     fn description() -> String;
 
     fn parse(s: &str) -> Option<Self>;
+}
+
+pub trait AsOpt: Sized {
+    fn long() -> LongFlag;
+
+    fn short() -> Option<ShortFlag>;
+
+    fn description() -> String;
 }
 
 pub trait AsGroup: Sized {

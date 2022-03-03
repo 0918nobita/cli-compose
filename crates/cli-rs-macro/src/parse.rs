@@ -24,9 +24,9 @@ impl Parse for ArgBind {
 }
 
 enum ArgKind {
-    Arg,
-    Flag,
-    FlagArg,
+    PosArg,
+    ArgOpt,
+    Opt,
     Group,
 }
 
@@ -35,17 +35,17 @@ impl TryFrom<syn::Ident> for ArgKind {
 
     fn try_from(ident: syn::Ident) -> Result<Self, Self::Error> {
         match &*ident.to_string() {
-            "arg" => Ok(Self::Arg),
+            "pos_arg" => Ok(Self::PosArg),
 
-            "flag" => Ok(Self::Flag),
+            "arg_opt" => Ok(Self::ArgOpt),
 
-            "flag_arg" => Ok(Self::FlagArg),
+            "opt" => Ok(Self::Opt),
 
             "group" => Ok(Self::Group),
 
             _ => Err(syn::Error::new_spanned(
                 ident,
-                "expected `arg`, `flag`, `flag_arg`, or `group`",
+                "expected `pos_arg`, `arg_opt`, `opt`, or `group`",
             )),
         }
     }
@@ -54,11 +54,11 @@ impl TryFrom<syn::Ident> for ArgKind {
 impl ToString for ArgKind {
     fn to_string(&self) -> String {
         match self {
-            Self::Arg => "Arguments",
+            Self::PosArg => "Positional arguments",
 
-            Self::Flag => "Flags",
+            Self::ArgOpt => "Options with argument",
 
-            Self::FlagArg => "Flag arguments",
+            Self::Opt => "Options without argument",
 
             Self::Group => "Groups",
         }
@@ -130,26 +130,26 @@ pub fn parse(input: TokenStream) -> syn::Result<TokenStream> {
             let path_str = path.to_token_stream().to_string();
 
             dump_code.extend(match kind {
-                ArgKind::Arg => quote! {
-                    println!("    {}: {}", <#path as cli_rs::AsArg>::name(), <#path as cli_rs::AsArg>::description());
+                ArgKind::PosArg => quote! {
+                    println!("    {}: {}", <#path as cli_rs::AsPosArg>::name(), <#path as cli_rs::AsPosArg>::description());
                 },
 
-                ArgKind::Flag => quote! {
-                    let names = if let Some(short) = <#path as cli_rs::AsFlag>::short() {
-                        format!("{}, {}", short, <#path as cli_rs::AsFlag>::long())
+                ArgKind::ArgOpt => quote! {
+                    let names = if let Some(short) = <#path as cli_rs::AsArgOpt>::short() {
+                        format!("{}, {}", short, <#path as cli_rs::AsArgOpt>::long())
                     } else {
-                        format!("{}", <#path as cli_rs::AsFlag>::long())
+                        format!("{}", <#path as cli_rs::AsArgOpt>::long())
                     };
-                    println!("    {}: {}", names, <#path as cli_rs::AsFlag>::description());
+                    println!("    {}: {}", names, <#path as cli_rs::AsArgOpt>::description());
                 },
 
-                ArgKind::FlagArg => quote! {
-                    let names = if let Some(short) = <#path as cli_rs::AsFlagArg>::short() {
-                        format!("{}, {}", short, <#path as cli_rs::AsFlagArg>::long())
+                ArgKind::Opt => quote! {
+                    let names = if let Some(short) = <#path as cli_rs::AsOpt>::short() {
+                        format!("{}, {}", short, <#path as cli_rs::AsOpt>::long())
                     } else {
-                        format!("{}", <#path as cli_rs::AsFlagArg>::long())
+                        format!("{}", <#path as cli_rs::AsOpt>::long())
                     };
-                    println!("    {}: {}", names, <#path as cli_rs::AsFlagArg>::description());
+                    println!("    {}: {}", names, <#path as cli_rs::AsOpt>::description());
                 },
 
                 ArgKind::Group => quote! {

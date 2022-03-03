@@ -1,24 +1,24 @@
-use cli_rs::{Arg, Flag, FlagArg, FromKebabStr, Group};
+use cli_rs::{ArgOpt, FromKebabStr, Group, Opt, PosArg};
 
 /// ソースファイルのパス
-#[derive(Debug, Arg)]
+#[derive(Debug, PosArg)]
 struct Input(String);
 
 /// ソースコードを標準入力から読み込む
-#[derive(Debug, Flag)]
-#[flag(long = "stdin")]
-struct StdinFlag;
+#[derive(Debug, Opt)]
+#[opt(long = "stdin")]
+struct StdinOpt;
 
 #[allow(dead_code)]
 #[derive(Debug, Group)]
 enum InputGroup {
     File(Input),
-    Stdin(StdinFlag),
+    Stdin(StdinOpt),
 }
 
 /// ソースファイルの形式
-#[derive(Debug, FlagArg, FromKebabStr)]
-#[flag_arg(default)]
+#[derive(Debug, ArgOpt, FromKebabStr)]
+#[arg_opt(default)]
 enum InputFormat {
     Json,
 
@@ -33,36 +33,36 @@ impl Default for InputFormat {
 }
 
 /// 出力するファイルのパス
-#[derive(Debug, FlagArg)]
-#[flag_arg(short = 'o')]
+#[derive(Debug, ArgOpt)]
+#[arg_opt(short = 'o')]
 struct Output(String);
 
 /// 標準出力に出力する
-#[derive(Debug, Flag)]
-#[flag(long = "stdout")]
-struct StdoutFlag;
+#[derive(Debug, Opt)]
+#[opt(long = "stdout")]
+struct StdoutOpt;
 
 #[allow(dead_code)]
 #[derive(Debug, Group)]
 enum OutputGroup {
     File(Output),
-    Stdout(StdoutFlag),
+    Stdout(StdoutOpt),
 }
 
-#[derive(Flag)]
+#[derive(Opt)]
 struct Verbose;
 
 fn main() {
     cli_rs::parse!(
         std::env::args(),
-        arg {
+        pos_arg {
             input = Input,
         }
-        flag_arg {
+        arg_opt {
             input_format = InputFormat,
             output = Output,
         }
-        flag {
+        opt {
             verbose = Verbose,
         }
     );

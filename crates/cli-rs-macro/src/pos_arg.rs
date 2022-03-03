@@ -1,5 +1,3 @@
-use std::fmt;
-
 use proc_macro2::TokenStream;
 use syn::{Data, NestedMeta};
 use thiserror::Error;
@@ -7,31 +5,25 @@ use thiserror::Error;
 use crate::{attr_meta::extract_meta, doc::extract_doc, kebab_case::upper_camel_to_kebab};
 
 #[derive(Debug, Error)]
-struct InvalidStruct;
-
-impl fmt::Display for InvalidStruct {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "#[derive(Arg)] can only be applied to structs with single unnamed field",
-        )
-    }
+enum PosArgError {
+    #[error("#[derive(PosArg)] can only be applied to structs with single unnamed field")]
+    InvalidStruct,
 }
 
-fn validate_struct(data: &Data) -> Result<&syn::Field, InvalidStruct> {
+fn validate_struct(data: &Data) -> Result<&syn::Field, PosArgError> {
     let unnamed = match data {
         Data::Struct(syn::DataStruct {
             fields: syn::Fields::Unnamed(syn::FieldsUnnamed { unnamed, .. }),
             ..
         }) => unnamed,
 
-        _ => return Err(InvalidStruct),
+        _ => return Err(PosArgError::InvalidStruct),
     };
 
     match unnamed.iter().collect::<Vec<_>>()[..] {
         [field] => Ok(field),
 
-        _ => Err(InvalidStruct),
+        _ => Err(PosArgError::InvalidStruct),
     }
 }
 
@@ -51,7 +43,7 @@ fn extract_arg_attr<'a>(
             _ => {
                 return Err(syn::Error::new_spanned(
                     nested_meta,
-                    "Literals in #[arg(..)] are not allowed",
+                    "Literals in #[pos_arg(..)] are not allowed",
                 ))
             }
         };
@@ -61,7 +53,7 @@ fn extract_arg_attr<'a>(
             _ => {
                 return Err(syn::Error::new_spanned(
                     meta,
-                    "Metadata in #[arg(..)] is invalid",
+                    "Metadata in #[pos_arg(..)] is invalid",
                 ))
             }
         };
@@ -72,7 +64,7 @@ fn extract_arg_attr<'a>(
                 _ => {
                     return Err(syn::Error::new_spanned(
                         lit,
-                        "#[arg(name = ..)] must be a string literal",
+                        "#[pos_arg(name = ..)] must be a string literal",
                     ))
                 }
             };
@@ -80,7 +72,7 @@ fn extract_arg_attr<'a>(
         } else {
             return Err(syn::Error::new_spanned(
                 path,
-                "Unexpected key in #[arg(..)]",
+                "Unexpected key in #[pos_arg(..)]",
             ));
         }
     }
@@ -88,10 +80,11 @@ fn extract_arg_attr<'a>(
     Ok(ArgAttr { name })
 }
 
-pub fn derive_arg(input: TokenStream) -> syn::Result<TokenStream> {
+pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
     let derive_input = syn::parse2::<syn::DeriveInput>(input)?;
 
-    let field = validate_struct(&derive_input.data).unwrap_or_else(|err| panic!("{}", err));
+    let field = validate_struct(&derive_input.data)
+        .map_err(|err| syn::Error::new_spanned(&derive_input, err.to_string()))?;
 
     let ArgAttr { name } = extract_arg_attr(derive_input.attrs.iter())?;
 
@@ -103,7 +96,7 @@ pub fn derive_arg(input: TokenStream) -> syn::Result<TokenStream> {
         name.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
 
     Ok(quote::quote! {
-        impl cli_rs::AsArg for #struct_name {
+        impl cli_rs::AsPosArg for #struct_name {
             fn name() -> String {
                 #struct_name_kebab_case.to_owned()
             }

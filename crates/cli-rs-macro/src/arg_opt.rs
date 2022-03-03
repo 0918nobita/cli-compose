@@ -6,52 +6,50 @@ use thiserror::Error;
 use crate::{attr_meta::extract_meta, doc::extract_doc, kebab_case::upper_camel_to_kebab};
 
 #[derive(Debug, Error)]
-enum FlagArgError {
-    #[error(
-        "#[derive(FlagArg)] can only be applied to structs with single unnamed field or enums"
-    )]
+enum ArgOptError {
+    #[error("#[derive(ArgOpt)] can only be applied to structs with single unnamed field or enums")]
     InvalidStruct,
 
     #[error("Unexpected type defintion (expected: struct or enum)")]
     UnexpectedTypeDef,
 }
 
-fn validate_struct(data_struct: &syn::DataStruct) -> Result<&syn::Field, FlagArgError> {
+fn validate_struct(data_struct: &syn::DataStruct) -> Result<&syn::Field, ArgOptError> {
     let unnamed = match data_struct {
         syn::DataStruct {
             fields: syn::Fields::Unnamed(syn::FieldsUnnamed { unnamed, .. }),
             ..
         } => unnamed,
 
-        _ => return Err(FlagArgError::InvalidStruct),
+        _ => return Err(ArgOptError::InvalidStruct),
     };
 
     match unnamed.iter().collect::<Vec<_>>()[..] {
         [field] => Ok(field),
 
-        _ => Err(FlagArgError::InvalidStruct),
+        _ => Err(ArgOptError::InvalidStruct),
     }
 }
 
-struct FlagArgAttr {
+struct ArgOptAttr {
     long: Option<String>,
     short: Option<char>,
 }
 
 // HACK: 可読性を上げたい
-fn extract_flag_arg_attr<'a>(
+fn extract_arg_opt_attr<'a>(
     attrs: impl Iterator<Item = &'a Attribute> + 'a,
-) -> syn::Result<FlagArgAttr> {
+) -> syn::Result<ArgOptAttr> {
     let mut long: Option<String> = None;
     let mut short: Option<char> = None;
 
-    for nested_meta in extract_meta(attrs, "flag_arg") {
+    for nested_meta in extract_meta(attrs, "arg_opt") {
         let meta = match nested_meta {
             NestedMeta::Meta(meta) => meta,
             _ => {
                 return Err(syn::Error::new_spanned(
                     nested_meta,
-                    "Literals in #[flag_arg(..)] are not allowed",
+                    "Literals in #[arg_opt(..)] are not allowed",
                 ))
             }
         };
@@ -67,7 +65,7 @@ fn extract_flag_arg_attr<'a>(
             _ => {
                 return Err(syn::Error::new_spanned(
                     meta,
-                    "Metadata in #[flag_arg(..)] is invalid",
+                    "Metadata in #[arg_opt(..)] is invalid",
                 ))
             }
         };
@@ -78,7 +76,7 @@ fn extract_flag_arg_attr<'a>(
                 _ => {
                     return Err(syn::Error::new_spanned(
                         lit,
-                        "#[flag_arg(long = ..)] must be a string literal",
+                        "#[arg_opt(long = ..)] must be a string literal",
                     ))
                 }
             };
@@ -89,7 +87,7 @@ fn extract_flag_arg_attr<'a>(
                 _ => {
                     return Err(syn::Error::new_spanned(
                         lit,
-                        "#[flag_arg(short = ..)] must be a char literal",
+                        "#[arg_opt(short = ..)] must be a char literal",
                     ))
                 }
             };
@@ -97,25 +95,23 @@ fn extract_flag_arg_attr<'a>(
         } else {
             return Err(syn::Error::new_spanned(
                 path,
-                "Unexpected key in #[flag_arg(..)]",
+                "Unexpected key in #[arg_opt(..)]",
             ));
         }
     }
 
-    Ok(FlagArgAttr { long, short })
+    Ok(ArgOptAttr { long, short })
 }
 
-pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
+pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
     let derive_input = syn::parse2::<syn::DeriveInput>(input)?;
 
     match &derive_input.data {
         Data::Struct(struct_data) => {
-            let field = match validate_struct(struct_data) {
-                Ok(field) => field,
-                Err(err) => return Err(syn::Error::new_spanned(derive_input, format!("{}", err))),
-            };
+            let field = validate_struct(struct_data)
+                .map_err(|err| syn::Error::new_spanned(&derive_input, err.to_string()))?;
 
-            let FlagArgAttr { long, short } = extract_flag_arg_attr(derive_input.attrs.iter())?;
+            let ArgOptAttr { long, short } = extract_arg_opt_attr(derive_input.attrs.iter())?;
             let short = match short {
                 Some(lit) => quote! { Some(cli_rs::ShortFlag::new(#lit)) },
                 None => quote! { None },
@@ -129,7 +125,7 @@ pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
                 long.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
 
             Ok(quote! {
-                impl cli_rs::AsFlagArg for #struct_name {
+                impl cli_rs::AsArgOpt for #struct_name {
                     fn long() -> cli_rs::LongFlag {
                         cli_rs::LongFlag::new(#struct_name_kebab_case)
                     }
@@ -151,7 +147,7 @@ pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
         }
 
         Data::Enum(_) => {
-            let FlagArgAttr { long, short } = extract_flag_arg_attr(derive_input.attrs.iter())?;
+            let ArgOptAttr { long, short } = extract_arg_opt_attr(derive_input.attrs.iter())?;
             let short = match short {
                 Some(lit) => quote! { Some(cli_rs::ShortFlag::new(#lit)) },
                 None => quote! { None },
@@ -164,7 +160,7 @@ pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
                 long.unwrap_or_else(|| upper_camel_to_kebab(&enum_name.to_string()));
 
             Ok(quote! {
-                impl cli_rs::AsFlagArg for #enum_name {
+                impl cli_rs::AsArgOpt for #enum_name {
                     fn long() -> cli_rs::LongFlag {
                         cli_rs::LongFlag::new(#enum_name_kebab_case)
                     }
@@ -186,7 +182,7 @@ pub fn derive_flag_arg(input: TokenStream) -> syn::Result<TokenStream> {
 
         _ => Err(syn::Error::new_spanned(
             derive_input,
-            format!("{}", FlagArgError::UnexpectedTypeDef),
+            format!("{}", ArgOptError::UnexpectedTypeDef),
         )),
     }
 }
