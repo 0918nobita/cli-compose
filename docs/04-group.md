@@ -1,3 +1,3 @@
-# Group
+# Group (グループ)
 
 WIP
