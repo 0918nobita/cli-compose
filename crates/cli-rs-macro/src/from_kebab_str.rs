@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 
-static INVALID_DERIVE_INPUT: &'static str =
+static INVALID_DERIVE_INPUT: &str =
     "`#[derive(FromKebabStr)]` can only be applied to enums whose variants have no field";
 
 pub fn derive_from_kebab_str(input: TokenStream) -> syn::Result<TokenStream> {
