@@ -2,7 +2,7 @@
 
 [clap](https://crates.io/crates/clap) クレートの代替となることを目指して開発を進めています。
 
-clap クレートの Derive API が単一の struct または enum に対する derive でコマンドラインパーサ全体の実装を生やすのに対し、このライブラリでは **「フラグ」「フラグ引数」「引数」「グループ」単位で derive してそれぞれに適した型安全なパーサ実装を生やし、自由に合成できる** ようにしています。この API で必要十分だと考えており、シンプルさのために、clap クレートの Builder API 相当の API は提供しないことにしています。
+clap クレートの Derive API が単一の struct または enum に対する derive でコマンドラインパーサ全体の実装を生やすのに対し、このライブラリでは **「位置指定引数」「引数付きオプション」「引数なしオプション」「グループ」単位で derive してそれぞれに適した型安全なパーサ実装を生やし、自由に合成できる** ようにしています。この API で必要十分だと考えており、シンプルさのために、clap クレートの Builder API 相当の API は提供しないことにしています。
 
 まだ初期段階なので、未実装あるいは動作が不安定な部分が含まれていることをご了承ください。
 
@@ -11,34 +11,28 @@ clap クレートの Derive API が単一の struct または enum に対する 
 ↓初回リリースでは以下のように動作することを目指しています。
 
 ```rust
-use cli_rs::{Arg, FlagArg, Flag, FromKebabStr, Group};
+use cli_rs::{ArgOpt, FromKebabStr, Group, Opt, PosArg};
 
 // ドキュメンテーションコメントはヘルプメッセージとして扱われます
 
 /// ソースファイルのパス
-#[derive(Debug, Arg)]
+#[derive(Debug, PosArg)]
 struct Input(String);
 
-// #[flag(long = ..)]: フラグ名を「型名をケバブケースに自動変換したもの」から変更したい場合、文字列リテラルを指定して上書きできます
-
 /// ソースコードを標準入力から読み込む
-#[derive(Debug, Flag)]
-#[flag(long = "stdin")]
-struct StdinFlag;
-
-// Group: どちらか一方を指定しないとエラーになります
+#[derive(Debug, Opt)]
+#[opt(long = "stdin")] // オプション名の上書き
+struct StdinOpt;
 
 #[derive(Debug, Group)]
 enum InputGroup {
     File(Input),
-    Stdin(StdinFlag),
+    Stdin(StdinOpt),
 }
 
-// #[flag_arg(default)]: このフラグ引数が省略された場合、デフォルト値が返ります
-
 /// ソースファイルの形式
-#[derive(Debug, FlagArg, FromKebabStr)]
-#[flag_arg(default)]
+#[derive(Debug, ArgOpt, FromKebabStr)]
+#[arg_opt(default)] // 省略された場合、デフォルト値が返ります
 enum InputFormat {
     Json,
     Yaml,
@@ -50,41 +44,39 @@ impl Default for InputFormat {
     }
 }
 
-// #[flag_arg(short = ..)]: フラグ引数の短縮名を指定できます
-
 /// 出力するファイルのパス
-#[derive(Debug, FlagArg)]
-#[flag_arg(short = 'o')]
+#[derive(Debug, ArgOpt)]
+#[arg_opt(short = 'o')] // 短縮名の指定
 struct Output(String);
 
 /// 標準出力に出力する
-#[derive(Debug, Flag)]
-#[flag(long = "stdout")]
-struct StdoutFlag;
+#[derive(Debug, Opt)]
+#[opt(long = "stdout")]
+struct StdoutOpt;
 
 #[derive(Debug, Group)]
 enum OutputGroup {
     File(Output),
-    Stdout(StdoutFlag),
+    Stdout(StdoutOpt),
 }
 
-#[derive(Flag)]
+#[derive(Opt)]
 struct Verbose;
 
 pub fn main() {
     cli_rs::parse!(
         std::env::args(),
 
-        group {
+        group(count = one, explicit = yes) {
             input = InputGroup,
             output = OutputGroup,
         }
 
-        flag_arg {
+        arg_opt {
             input_format = InputFormat,
         }
 
-        flag {
+        opt {
             verbose = Verbose,
         }
     );
@@ -99,9 +91,9 @@ pub fn main() {
 `$ cargo run -- --verbose --stdin --stdout` :
 
 ```text
-Input: Stdin(StdinFlag)
+Input: Stdin(StdinOpt)
 InputFormat: Json
-Output: Stdout(StdoutFlag)
+Output: Stdout(StdoutOpt)
 Verbose: Some(Verbose)
 ```
 
