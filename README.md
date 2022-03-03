@@ -73,13 +73,17 @@ struct Verbose;
 
 pub fn main() {
     cli_rs::parse!(
+        std::env::args(),
+
         group {
             input = InputGroup,
             output = OutputGroup,
         }
+
         flag_arg {
             input_format = InputFormat,
         }
+
         flag {
             verbose = Verbose,
         }
