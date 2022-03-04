@@ -12,7 +12,10 @@ fn try_get_single_line_doc(attr: &Attribute) -> Option<String> {
     }
 }
 
-pub fn extract_doc<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> String {
+pub fn extract_doc<'a, A>(attrs: A) -> String
+where
+    A: Iterator<Item = &'a Attribute> + 'a,
+{
     attrs
         .filter_map(try_get_single_line_doc)
         .collect::<Vec<_>>()

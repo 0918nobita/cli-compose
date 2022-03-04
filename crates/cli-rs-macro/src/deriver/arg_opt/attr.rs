@@ -15,7 +15,6 @@ macro_rules! err {
     };
 }
 
-// HACK: 可読性を上げたい
 pub fn extract_arg_opt_attr<'a, A>(attrs: A) -> ArgOptResult<ArgOptAttr>
 where
     A: Iterator<Item = &'a syn::Attribute> + 'a,
