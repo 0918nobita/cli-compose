@@ -25,7 +25,7 @@ pub fn derive_from_kebab_str(input: TokenStream) -> syn::Result<TokenStream> {
             type Err = ();
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                unimplemented!()
+                todo!()
             }
         }
     })
