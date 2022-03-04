@@ -1,9 +1,11 @@
 //! CLI 開発支援ライブラリ
 
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use derive_more::Display;
 
 pub use cli_rs_macro::{parse, ArgOpt, FromKebabStr, Group, Opt, PosArg};
 
+#[derive(Display)]
+#[display(fmt = "--{}", _0)]
 pub struct LongFlag(String);
 
 impl LongFlag {
@@ -12,23 +14,13 @@ impl LongFlag {
     }
 }
 
-impl Display for LongFlag {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "--{}", self.0)
-    }
-}
-
+#[derive(Display)]
+#[display(fmt = "-{}", _0)]
 pub struct ShortFlag(char);
 
 impl ShortFlag {
     pub fn new(c: char) -> Self {
         Self(c)
-    }
-}
-
-impl Display for ShortFlag {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "-{}", self.0)
     }
 }
 

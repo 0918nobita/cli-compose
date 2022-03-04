@@ -1,12 +1,12 @@
+use derive_more::Display;
 use proc_macro2::TokenStream;
 use syn::{Data, NestedMeta};
-use thiserror::Error;
 
 use crate::{attr_meta::extract_meta, doc::extract_doc, kebab_case::upper_camel_to_kebab};
 
-#[derive(Debug, Error)]
+#[derive(Debug, Display)]
 enum PosArgError {
-    #[error("#[derive(PosArg)] can only be applied to structs with single unnamed field")]
+    #[display(fmt = "#[derive(PosArg)] can only be applied to structs with single unnamed field")]
     InvalidStruct,
 }
 

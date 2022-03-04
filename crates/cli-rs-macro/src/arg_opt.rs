@@ -1,84 +1,40 @@
+mod attr;
 mod result;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::{Attribute, Data, NestedMeta};
+use syn::Data;
 
-use self::result::{ArgOptError, ArgOptResult};
-use crate::{attr_meta::extract_meta, doc::extract_doc, kebab_case::upper_camel_to_kebab};
+use self::{
+    attr::{extract_arg_opt_attr, ArgOptAttr},
+    result::{ArgOptError, ArgOptErrorKind, ArgOptResult},
+};
+use crate::{doc::extract_doc, kebab_case::upper_camel_to_kebab};
 
 fn validate_struct(data_struct: &syn::DataStruct) -> Option<&syn::Field> {
     let unnamed = match data_struct {
         syn::DataStruct {
             fields: syn::Fields::Unnamed(syn::FieldsUnnamed { unnamed, .. }),
             ..
-        } => unnamed,
-
-        _ => return None,
-    };
+        } => Some(unnamed),
+        _ => None,
+    }?;
 
     match unnamed.iter().collect::<Vec<_>>()[..] {
         [field] => Some(field),
-
         _ => None,
     }
-}
-
-struct ArgOptAttr {
-    long: Option<String>,
-    short: Option<char>,
-}
-
-// HACK: 可読性を上げたい
-fn extract_arg_opt_attr<'a, A>(attrs: A) -> ArgOptResult<ArgOptAttr>
-where
-    A: Iterator<Item = &'a Attribute> + 'a,
-{
-    let mut long: Option<String> = None;
-    let mut short: Option<char> = None;
-
-    for nested_meta in extract_meta(attrs, "arg_opt") {
-        let meta = match nested_meta {
-            NestedMeta::Meta(meta) => meta,
-            _ => return Err(ArgOptError::UnexpectedLit(nested_meta.to_token_stream())),
-        };
-
-        let syn::MetaNameValue { path, lit, .. } = match meta {
-            syn::Meta::NameValue(name_value) => name_value,
-
-            // TODO: default を指定した場合のコード生成を実装する
-            syn::Meta::Path(path) if path.is_ident("default") => {
-                continue;
-            }
-
-            _ => return Err(ArgOptError::InvalidMeta(meta.to_token_stream())),
-        };
-
-        if path.is_ident("long") {
-            let lit = match lit {
-                syn::Lit::Str(lit) => lit,
-                _ => return Err(ArgOptError::InvalidLongValue(lit.to_token_stream())),
-            };
-            long = Some(lit.value());
-        } else if path.is_ident("short") {
-            let lit = match lit {
-                syn::Lit::Char(lit) => lit,
-                _ => return Err(ArgOptError::InvalidShortValue(lit.to_token_stream())),
-            };
-            short = Some(lit.value());
-        } else {
-            return Err(ArgOptError::UnexpectedKey(path.to_token_stream()));
-        }
-    }
-
-    Ok(ArgOptAttr { long, short })
 }
 
 fn codegen(derive_input: &syn::DeriveInput) -> ArgOptResult<TokenStream> {
     match &derive_input.data {
         Data::Struct(struct_data) => {
-            let field = validate_struct(struct_data)
-                .ok_or_else(|| ArgOptError::InvalidTypeDef(derive_input.to_token_stream()))?;
+            let field = validate_struct(struct_data).ok_or_else(|| {
+                ArgOptError::new(
+                    ArgOptErrorKind::InvalidTypeDef,
+                    derive_input.to_token_stream(),
+                )
+            })?;
 
             let ArgOptAttr { long, short } = extract_arg_opt_attr(derive_input.attrs.iter())?;
             let short = match short {
@@ -149,7 +105,10 @@ fn codegen(derive_input: &syn::DeriveInput) -> ArgOptResult<TokenStream> {
             })
         }
 
-        _ => Err(ArgOptError::InvalidTypeDef(derive_input.to_token_stream())),
+        _ => Err(ArgOptError::new(
+            ArgOptErrorKind::InvalidTypeDef,
+            derive_input.to_token_stream(),
+        )),
     }
 }
 

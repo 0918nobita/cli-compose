@@ -1,20 +1,13 @@
-use std::fmt;
-
+use derive_more::Display;
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Attribute, Data, NestedMeta};
-use thiserror::Error;
 
 use crate::{attr_meta::extract_meta, doc::extract_doc, kebab_case::upper_camel_to_kebab};
 
-#[derive(Debug, Error)]
+#[derive(Debug, Display)]
+#[display(fmt = "#[derive(Opt)] can only be applied to empty structs")]
 struct InvalidStruct;
-
-impl fmt::Display for InvalidStruct {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "#[derive(Opt)] can only be applied to empty structs")
-    }
-}
 
 fn validate_struct(data: &Data) -> Result<(), InvalidStruct> {
     match data {
@@ -22,11 +15,11 @@ fn validate_struct(data: &Data) -> Result<(), InvalidStruct> {
             fields: syn::Fields::Unit,
             ..
         }) => Ok(()),
-
         _ => Err(InvalidStruct),
     }
 }
 
+#[derive(Default)]
 struct OptAttr {
     long: Option<String>,
     short: Option<char>,
@@ -34,8 +27,7 @@ struct OptAttr {
 
 // HACK: 可読性を上げたい
 fn extract_opt_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> syn::Result<OptAttr> {
-    let mut long: Option<String> = None;
-    let mut short: Option<char> = None;
+    let mut attr = OptAttr::default();
 
     for nested_meta in extract_meta(attrs, "opt") {
         let meta = match nested_meta {
@@ -68,7 +60,7 @@ fn extract_opt_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> syn:
                     ))
                 }
             };
-            long = Some(lit.value());
+            attr.long = Some(lit.value());
         } else if path.is_ident("short") {
             let lit = match lit {
                 syn::Lit::Char(lit) => lit,
@@ -79,7 +71,7 @@ fn extract_opt_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> syn:
                     ))
                 }
             };
-            short = Some(lit.value());
+            attr.short = Some(lit.value());
         } else {
             return Err(syn::Error::new_spanned(
                 path,
@@ -88,7 +80,7 @@ fn extract_opt_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> syn:
         }
     }
 
-    Ok(OptAttr { long, short })
+    Ok(attr)
 }
 
 pub fn derive_opt(input: TokenStream) -> syn::Result<TokenStream> {
@@ -152,9 +144,15 @@ pub struct FlagNormalizer {
     inner: std::collections::HashMap<char, String>,
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Display)]
 pub enum FlagError {
-    #[error("Duplicate short flag: `{0:?} -> {1:?}` and `{0:?} -> {2:?}`")]
+    #[display(
+        fmt = "Duplicate short flag: `{} -> {}` and `{} -> {}`",
+        _0,
+        _1,
+        _0,
+        _2
+    )]
     DuplicateShortFlag(char, String, String),
 }
 

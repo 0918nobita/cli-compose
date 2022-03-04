@@ -1,39 +1,43 @@
+use derive_more::Display;
 use proc_macro2::TokenStream;
-use thiserror::Error;
 
-#[derive(Debug, Error)]
-pub enum ArgOptError {
-    #[error("#[derive(ArgOpt)] can only be applied to structs with single unnamed field or enums")]
-    InvalidTypeDef(TokenStream),
+#[derive(Debug, Display)]
+pub enum ArgOptErrorKind {
+    #[display(
+        fmt = "#[derive(ArgOpt)] can only be applied to structs with single unnamed field or enums"
+    )]
+    InvalidTypeDef,
 
-    #[error("Literals in #[arg_opt(..)] is not allowed")]
-    UnexpectedLit(TokenStream),
+    #[display(fmt = "Literals in #[arg_opt(..)] is not allowed")]
+    UnexpectedLit,
 
-    #[error("Metadata in #[arg_opt(..)] is invalid")]
-    InvalidMeta(TokenStream),
+    #[display(fmt = "Metadata in #[arg_opt(..)] is invalid")]
+    InvalidMeta,
 
-    #[error("#[arg_opt(long = ..)] must be a string literal")]
-    InvalidLongValue(TokenStream),
+    #[display(fmt = "#[arg_opt(long = ..)] must be a string literal")]
+    InvalidLongValue,
 
-    #[error("#[arg_opt(short = ..)] must be a char literal")]
-    InvalidShortValue(TokenStream),
+    #[display(fmt = "#[arg_opt(short = ..)] must be a char literal")]
+    InvalidShortValue,
 
-    #[error("Unexpected key in #[arg_opt(..)]")]
-    UnexpectedKey(TokenStream),
+    #[display(fmt = "Unexpected key in #[arg_opt(..)]")]
+    UnexpectedKey,
+}
+
+pub struct ArgOptError {
+    kind: ArgOptErrorKind,
+    tokens: TokenStream,
+}
+
+impl ArgOptError {
+    pub fn new(kind: ArgOptErrorKind, tokens: TokenStream) -> Self {
+        Self { kind, tokens }
+    }
 }
 
 impl From<ArgOptError> for syn::Error {
     fn from(err: ArgOptError) -> syn::Error {
-        match &err {
-            ArgOptError::InvalidTypeDef(tokens)
-            | ArgOptError::UnexpectedLit(tokens)
-            | ArgOptError::InvalidMeta(tokens)
-            | ArgOptError::InvalidLongValue(tokens)
-            | ArgOptError::InvalidShortValue(tokens)
-            | ArgOptError::UnexpectedKey(tokens) => {
-                syn::Error::new_spanned(tokens, format!("{}", err))
-            }
-        }
+        syn::Error::new_spanned(err.tokens, err.kind.to_string())
     }
 }
 
