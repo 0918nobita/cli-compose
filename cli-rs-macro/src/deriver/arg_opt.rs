@@ -1,6 +1,7 @@
 mod attr;
 mod result;
 
+use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::Data;
@@ -9,7 +10,7 @@ use self::{
     attr::{extract_arg_opt_attr, ArgOptAttr},
     result::{ArgOptErr, ArgOptErrKind},
 };
-use crate::{doc::extract_doc, kebab_case::upper_camel_to_kebab};
+use crate::doc::extract_doc;
 
 fn validate_struct(data_struct: &syn::DataStruct) -> Option<&syn::Field> {
     let unnamed = match data_struct {
@@ -49,7 +50,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
             let ty = field.ty.clone();
             let struct_name = &derive_input.ident;
             let struct_name_kebab_case =
-                long.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
+                long.unwrap_or_else(|| struct_name.to_string().to_case(Case::Kebab));
 
             Ok(quote! {
                 impl cli_rs::AsArgOpt for #struct_name {
@@ -84,7 +85,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
 
             let enum_name = &derive_input.ident;
             let enum_name_kebab_case =
-                long.unwrap_or_else(|| upper_camel_to_kebab(&enum_name.to_string()));
+                long.unwrap_or_else(|| enum_name.to_string().to_case(Case::Kebab));
 
             Ok(quote! {
                 impl cli_rs::AsArgOpt for #enum_name {

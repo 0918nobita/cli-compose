@@ -1,6 +1,7 @@
 mod attr;
 mod result;
 
+use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::Data;
@@ -9,7 +10,7 @@ use self::{
     attr::{extract_pos_arg_attr, PosArgAttr},
     result::{PosArgErr, PosArgErrKind},
 };
-use crate::{doc::extract_doc, kebab_case::upper_camel_to_kebab};
+use crate::doc::extract_doc;
 
 fn validate_struct(data: &Data) -> Option<&syn::Field> {
     let unnamed = match data {
@@ -40,7 +41,7 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
     let _ty = field.ty.clone();
     let struct_name = derive_input.ident;
     let struct_name_kebab_case =
-        name.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
+        name.unwrap_or_else(|| struct_name.to_string().to_case(Case::Kebab));
 
     Ok(quote::quote! {
         impl cli_rs::AsPosArg for #struct_name {

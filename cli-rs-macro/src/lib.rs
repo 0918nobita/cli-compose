@@ -1,7 +1,6 @@
 mod attr_meta;
 mod deriver;
 mod doc;
-mod kebab_case;
 mod parse;
 
 use proc_macro::TokenStream;
