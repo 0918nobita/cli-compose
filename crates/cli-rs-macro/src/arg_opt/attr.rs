@@ -9,6 +9,12 @@ pub struct ArgOptAttr {
     pub short: Option<char>,
 }
 
+macro_rules! err {
+    ($kind:ident, $to_tokens:expr) => {
+        ArgOptErr::new(ArgOptErrKind::$kind, $to_tokens.to_token_stream())
+    };
+}
+
 // HACK: 可読性を上げたい
 pub fn extract_arg_opt_attr<'a, A>(attrs: A) -> ArgOptResult<ArgOptAttr>
 where
@@ -19,10 +25,7 @@ where
     for nested_meta in extract_meta(attrs, "arg_opt") {
         let meta = match nested_meta {
             syn::NestedMeta::Meta(meta) => Ok(meta),
-            _ => Err(ArgOptErr::new(
-                ArgOptErrKind::UnexpectedLit,
-                nested_meta.to_token_stream(),
-            )),
+            _ => Err(err!(UnexpectedLit, nested_meta)),
         }?;
 
         let syn::MetaNameValue { path, lit, .. } = match meta {
@@ -33,37 +36,23 @@ where
                 continue;
             }
 
-            _ => {
-                return Err(ArgOptErr::new(
-                    ArgOptErrKind::InvalidMeta,
-                    meta.to_token_stream(),
-                ))
-            }
+            _ => return Err(err!(InvalidMeta, meta)),
         };
 
         if path.is_ident("long") {
             let lit = match lit {
                 syn::Lit::Str(lit) => Ok(lit),
-                _ => Err(ArgOptErr::new(
-                    ArgOptErrKind::InvalidLongValue,
-                    lit.to_token_stream(),
-                )),
+                _ => Err(err!(InvalidLongValue, lit)),
             }?;
             attr.long = Some(lit.value());
         } else if path.is_ident("short") {
             let lit = match lit {
                 syn::Lit::Char(lit) => Ok(lit),
-                _ => Err(ArgOptErr::new(
-                    ArgOptErrKind::InvalidShortValue,
-                    lit.to_token_stream(),
-                )),
+                _ => Err(err!(InvalidShortValue, lit)),
             }?;
             attr.short = Some(lit.value());
         } else {
-            return Err(ArgOptErr::new(
-                ArgOptErrKind::UnexpectedKey,
-                path.to_token_stream(),
-            ));
+            return Err(err!(UnexpectedKey, path));
         }
     }
 

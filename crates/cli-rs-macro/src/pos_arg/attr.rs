@@ -8,6 +8,12 @@ pub struct PosArgAttr {
     pub name: Option<String>,
 }
 
+macro_rules! err {
+    ($kind:ident, $to_tokens:expr) => {
+        PosArgErr::new(PosArgErrKind::$kind, $to_tokens.to_token_stream())
+    };
+}
+
 pub fn extract_pos_arg_attr<'a, A>(attrs: A) -> PosArgResult<PosArgAttr>
 where
     A: Iterator<Item = &'a syn::Attribute> + 'a,
@@ -17,34 +23,22 @@ where
     for nested_meta in extract_meta(attrs, "arg") {
         let meta = match nested_meta {
             syn::NestedMeta::Meta(meta) => Ok(meta),
-            _ => Err(PosArgErr::new(
-                PosArgErrKind::UnexpectedLit,
-                nested_meta.to_token_stream(),
-            )),
+            _ => Err(err!(UnexpectedLit, nested_meta)),
         }?;
 
         let syn::MetaNameValue { path, lit, .. } = match meta {
             syn::Meta::NameValue(name_value) => Ok(name_value),
-            _ => Err(PosArgErr::new(
-                PosArgErrKind::InvalidMeta,
-                meta.to_token_stream(),
-            )),
+            _ => Err(err!(InvalidMeta, meta)),
         }?;
 
         if path.is_ident("name") {
             let lit = match lit {
                 syn::Lit::Str(lit) => Ok(lit),
-                _ => Err(PosArgErr::new(
-                    PosArgErrKind::InvalidNameValue,
-                    lit.to_token_stream(),
-                )),
+                _ => Err(err!(InvalidNameValue, lit)),
             }?;
             attr.name = Some(lit.value());
         } else {
-            return Err(PosArgErr::new(
-                PosArgErrKind::UnexpectedKey,
-                path.to_token_stream(),
-            ));
+            return Err(err!(UnexpectedKey, path));
         }
     }
 
