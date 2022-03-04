@@ -6,4 +6,4 @@ license = "MIT"
 edition = "2021"
 
 [dependencies]
-cli-rs = { path = "../cli-rs" }
+cli-rs = { path = "../" }

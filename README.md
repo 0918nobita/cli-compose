@@ -8,7 +8,9 @@ clap クレートの Derive API が単一の struct または enum に対する 
 
 ( ``cli-rs`` は仮称であり、正式名称は思いついていません。何か良さげな名前があれば、提案していただけると嬉しいです。)
 
-↓初回リリースでは以下のように動作することを目指しています。
+## 開発目標
+
+以下のように動作することを目指しています。
 
 ```rust
 use cli_rs::{ArgOpt, FromKebabStr, Group, Opt, PosArg};
@@ -104,4 +106,10 @@ Input: File("input.txt")
 InputFormat: Yaml
 Output: File("output.txt")
 Verbose: None
+```
+
+## サンプルの実行方法
+
+```bash
+cargo run -p playground
 ```
