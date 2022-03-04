@@ -1,33 +1,26 @@
-use proc_macro2::TokenStream;
-use quote::quote;
-use syn::{Attribute, Data, NestedMeta};
-use thiserror::Error;
+mod result;
 
+use proc_macro2::TokenStream;
+use quote::{quote, ToTokens};
+use syn::{Attribute, Data, NestedMeta};
+
+use self::result::{ArgOptError, ArgOptResult};
 use crate::{attr_meta::extract_meta, doc::extract_doc, kebab_case::upper_camel_to_kebab};
 
-#[derive(Debug, Error)]
-enum ArgOptError {
-    #[error("#[derive(ArgOpt)] can only be applied to structs with single unnamed field or enums")]
-    InvalidStruct,
-
-    #[error("Unexpected type defintion (expected: struct or enum)")]
-    UnexpectedTypeDef,
-}
-
-fn validate_struct(data_struct: &syn::DataStruct) -> Result<&syn::Field, ArgOptError> {
+fn validate_struct(data_struct: &syn::DataStruct) -> Option<&syn::Field> {
     let unnamed = match data_struct {
         syn::DataStruct {
             fields: syn::Fields::Unnamed(syn::FieldsUnnamed { unnamed, .. }),
             ..
         } => unnamed,
 
-        _ => return Err(ArgOptError::InvalidStruct),
+        _ => return None,
     };
 
     match unnamed.iter().collect::<Vec<_>>()[..] {
-        [field] => Ok(field),
+        [field] => Some(field),
 
-        _ => Err(ArgOptError::InvalidStruct),
+        _ => None,
     }
 }
 
@@ -37,21 +30,17 @@ struct ArgOptAttr {
 }
 
 // HACK: 可読性を上げたい
-fn extract_arg_opt_attr<'a>(
-    attrs: impl Iterator<Item = &'a Attribute> + 'a,
-) -> syn::Result<ArgOptAttr> {
+fn extract_arg_opt_attr<'a, A>(attrs: A) -> ArgOptResult<ArgOptAttr>
+where
+    A: Iterator<Item = &'a Attribute> + 'a,
+{
     let mut long: Option<String> = None;
     let mut short: Option<char> = None;
 
     for nested_meta in extract_meta(attrs, "arg_opt") {
         let meta = match nested_meta {
             NestedMeta::Meta(meta) => meta,
-            _ => {
-                return Err(syn::Error::new_spanned(
-                    nested_meta,
-                    "Literals in #[arg_opt(..)] are not allowed",
-                ))
-            }
+            _ => return Err(ArgOptError::UnexpectedLit(nested_meta.to_token_stream())),
         };
 
         let syn::MetaNameValue { path, lit, .. } = match meta {
@@ -62,54 +51,34 @@ fn extract_arg_opt_attr<'a>(
                 continue;
             }
 
-            _ => {
-                return Err(syn::Error::new_spanned(
-                    meta,
-                    "Metadata in #[arg_opt(..)] is invalid",
-                ))
-            }
+            _ => return Err(ArgOptError::InvalidMeta(meta.to_token_stream())),
         };
 
         if path.is_ident("long") {
             let lit = match lit {
                 syn::Lit::Str(lit) => lit,
-                _ => {
-                    return Err(syn::Error::new_spanned(
-                        lit,
-                        "#[arg_opt(long = ..)] must be a string literal",
-                    ))
-                }
+                _ => return Err(ArgOptError::InvalidLongValue(lit.to_token_stream())),
             };
             long = Some(lit.value());
         } else if path.is_ident("short") {
             let lit = match lit {
                 syn::Lit::Char(lit) => lit,
-                _ => {
-                    return Err(syn::Error::new_spanned(
-                        lit,
-                        "#[arg_opt(short = ..)] must be a char literal",
-                    ))
-                }
+                _ => return Err(ArgOptError::InvalidShortValue(lit.to_token_stream())),
             };
             short = Some(lit.value());
         } else {
-            return Err(syn::Error::new_spanned(
-                path,
-                "Unexpected key in #[arg_opt(..)]",
-            ));
+            return Err(ArgOptError::UnexpectedKey(path.to_token_stream()));
         }
     }
 
     Ok(ArgOptAttr { long, short })
 }
 
-pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
-    let derive_input = syn::parse2::<syn::DeriveInput>(input)?;
-
+fn codegen(derive_input: &syn::DeriveInput) -> ArgOptResult<TokenStream> {
     match &derive_input.data {
         Data::Struct(struct_data) => {
             let field = validate_struct(struct_data)
-                .map_err(|err| syn::Error::new_spanned(&derive_input, err.to_string()))?;
+                .ok_or_else(|| ArgOptError::InvalidTypeDef(derive_input.to_token_stream()))?;
 
             let ArgOptAttr { long, short } = extract_arg_opt_attr(derive_input.attrs.iter())?;
             let short = match short {
@@ -120,7 +89,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
             let doc = extract_doc(derive_input.attrs.iter());
 
             let ty = field.ty.clone();
-            let struct_name = derive_input.ident;
+            let struct_name = &derive_input.ident;
             let struct_name_kebab_case =
                 long.unwrap_or_else(|| upper_camel_to_kebab(&struct_name.to_string()));
 
@@ -155,7 +124,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
 
             let doc = extract_doc(derive_input.attrs.iter());
 
-            let enum_name = derive_input.ident;
+            let enum_name = &derive_input.ident;
             let enum_name_kebab_case =
                 long.unwrap_or_else(|| upper_camel_to_kebab(&enum_name.to_string()));
 
@@ -180,9 +149,11 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
             })
         }
 
-        _ => Err(syn::Error::new_spanned(
-            derive_input,
-            format!("{}", ArgOptError::UnexpectedTypeDef),
-        )),
+        _ => Err(ArgOptError::InvalidTypeDef(derive_input.to_token_stream())),
     }
+}
+
+pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
+    let derive_input = syn::parse2::<syn::DeriveInput>(input)?;
+    codegen(&derive_input).map_err(|err| err.into())
 }
