@@ -1,93 +1,32 @@
+mod attr;
+mod result;
+
 use derive_more::Display;
 use proc_macro2::TokenStream;
-use quote::quote;
-use syn::{Attribute, Data, NestedMeta};
+use quote::{quote, ToTokens};
+use syn::Data;
 
-use crate::{attr_meta::extract_meta, doc::extract_doc, kebab_case::upper_camel_to_kebab};
+use self::{
+    attr::{extract_opt_attr, OptAttr},
+    result::{OptErr, OptErrKind},
+};
+use crate::{doc::extract_doc, kebab_case::upper_camel_to_kebab};
 
-#[derive(Debug, Display)]
-#[display(fmt = "#[derive(Opt)] can only be applied to empty structs")]
-struct InvalidStruct;
-
-fn validate_struct(data: &Data) -> Result<(), InvalidStruct> {
+fn validate_struct(data: &Data) -> Option<()> {
     match data {
         Data::Struct(syn::DataStruct {
             fields: syn::Fields::Unit,
             ..
-        }) => Ok(()),
-        _ => Err(InvalidStruct),
+        }) => Some(()),
+        _ => None,
     }
-}
-
-#[derive(Default)]
-struct OptAttr {
-    long: Option<String>,
-    short: Option<char>,
-}
-
-// HACK: 可読性を上げたい
-fn extract_opt_attr<'a>(attrs: impl Iterator<Item = &'a Attribute> + 'a) -> syn::Result<OptAttr> {
-    let mut attr = OptAttr::default();
-
-    for nested_meta in extract_meta(attrs, "opt") {
-        let meta = match nested_meta {
-            NestedMeta::Meta(meta) => meta,
-            _ => {
-                return Err(syn::Error::new_spanned(
-                    nested_meta,
-                    "Literals in #[opt(..)] are not allowed",
-                ))
-            }
-        };
-
-        let syn::MetaNameValue { path, lit, .. } = match meta {
-            syn::Meta::NameValue(name_value) => name_value,
-            _ => {
-                return Err(syn::Error::new_spanned(
-                    meta,
-                    "Metadata in #[opt(..)] is invalid",
-                ))
-            }
-        };
-
-        if path.is_ident("long") {
-            let lit = match lit {
-                syn::Lit::Str(lit) => lit,
-                _ => {
-                    return Err(syn::Error::new_spanned(
-                        lit,
-                        "#[opt(long = ..)] must be a string literal",
-                    ))
-                }
-            };
-            attr.long = Some(lit.value());
-        } else if path.is_ident("short") {
-            let lit = match lit {
-                syn::Lit::Char(lit) => lit,
-                _ => {
-                    return Err(syn::Error::new_spanned(
-                        lit,
-                        "#[opt(short = ..)] must be a char literal",
-                    ))
-                }
-            };
-            attr.short = Some(lit.value());
-        } else {
-            return Err(syn::Error::new_spanned(
-                path,
-                "Unexpected key in #[opt(..)]",
-            ));
-        }
-    }
-
-    Ok(attr)
 }
 
 pub fn derive_opt(input: TokenStream) -> syn::Result<TokenStream> {
     let derive_input = syn::parse2::<syn::DeriveInput>(input)?;
 
     validate_struct(&derive_input.data)
-        .map_err(|err| syn::Error::new_spanned(&derive_input, err.to_string()))?;
+        .ok_or_else(|| OptErr::new(OptErrKind::InvalidStruct, derive_input.to_token_stream()))?;
 
     let OptAttr { long, short } = extract_opt_attr(derive_input.attrs.iter())?;
     let short = match short {

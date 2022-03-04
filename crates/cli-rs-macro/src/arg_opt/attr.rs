@@ -1,6 +1,6 @@
 use quote::ToTokens;
 
-use super::result::{ArgOptError, ArgOptErrorKind, ArgOptResult};
+use super::result::{ArgOptErr, ArgOptErrKind, ArgOptResult};
 use crate::attr_meta::extract_meta;
 
 #[derive(Default)]
@@ -19,8 +19,8 @@ where
     for nested_meta in extract_meta(attrs, "arg_opt") {
         let meta = match nested_meta {
             syn::NestedMeta::Meta(meta) => Ok(meta),
-            _ => Err(ArgOptError::new(
-                ArgOptErrorKind::UnexpectedLit,
+            _ => Err(ArgOptErr::new(
+                ArgOptErrKind::UnexpectedLit,
                 nested_meta.to_token_stream(),
             )),
         }?;
@@ -34,8 +34,8 @@ where
             }
 
             _ => {
-                return Err(ArgOptError::new(
-                    ArgOptErrorKind::InvalidMeta,
+                return Err(ArgOptErr::new(
+                    ArgOptErrKind::InvalidMeta,
                     meta.to_token_stream(),
                 ))
             }
@@ -44,8 +44,8 @@ where
         if path.is_ident("long") {
             let lit = match lit {
                 syn::Lit::Str(lit) => Ok(lit),
-                _ => Err(ArgOptError::new(
-                    ArgOptErrorKind::InvalidLongValue,
+                _ => Err(ArgOptErr::new(
+                    ArgOptErrKind::InvalidLongValue,
                     lit.to_token_stream(),
                 )),
             }?;
@@ -53,15 +53,15 @@ where
         } else if path.is_ident("short") {
             let lit = match lit {
                 syn::Lit::Char(lit) => Ok(lit),
-                _ => Err(ArgOptError::new(
-                    ArgOptErrorKind::InvalidShortValue,
+                _ => Err(ArgOptErr::new(
+                    ArgOptErrKind::InvalidShortValue,
                     lit.to_token_stream(),
                 )),
             }?;
             attr.short = Some(lit.value());
         } else {
-            return Err(ArgOptError::new(
-                ArgOptErrorKind::UnexpectedKey,
+            return Err(ArgOptErr::new(
+                ArgOptErrKind::UnexpectedKey,
                 path.to_token_stream(),
             ));
         }
