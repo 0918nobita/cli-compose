@@ -7,7 +7,7 @@ use syn::Data;
 
 use self::{
     attr::{extract_arg_opt_attr, ArgOptAttr},
-    result::{ArgOptErr, ArgOptErrKind, ArgOptResult},
+    result::{ArgOptErr, ArgOptErrKind},
 };
 use crate::{doc::extract_doc, kebab_case::upper_camel_to_kebab};
 
@@ -26,7 +26,9 @@ fn validate_struct(data_struct: &syn::DataStruct) -> Option<&syn::Field> {
     }
 }
 
-fn codegen(derive_input: &syn::DeriveInput) -> ArgOptResult<TokenStream> {
+pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
+    let derive_input = syn::parse2::<syn::DeriveInput>(input)?;
+
     match &derive_input.data {
         Data::Struct(struct_data) => {
             let field = validate_struct(struct_data).ok_or_else(|| {
@@ -108,12 +110,7 @@ fn codegen(derive_input: &syn::DeriveInput) -> ArgOptResult<TokenStream> {
         _ => Err(ArgOptErr::new(
             ArgOptErrKind::InvalidTypeDef,
             derive_input.to_token_stream(),
-        )),
+        )
+        .into()),
     }
-}
-
-pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
-    let derive_input = syn::parse2::<syn::DeriveInput>(input)?;
-    let tokens = codegen(&derive_input)?;
-    Ok(tokens)
 }
