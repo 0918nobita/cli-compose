@@ -24,6 +24,18 @@ impl ShortFlag {
     }
 }
 
+#[derive(Display)]
+pub enum Flag {
+    #[display(fmt = "--{}", _0)]
+    LongOnly(String),
+
+    #[display(fmt = "-{}", _0)]
+    ShortOnly(char),
+
+    #[display(fmt = "--{}, -{}", _0, _1)]
+    BothLongAndShort(String, char),
+}
+
 pub trait AsPosArg: Sized {
     fn name() -> String;
 
