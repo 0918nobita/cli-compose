@@ -34,7 +34,6 @@ enum InputGroup {
 
 /// ソースファイルの形式
 #[derive(Debug, ArgOpt, FromKebabStr)]
-#[arg_opt(default)] // 省略された場合、デフォルト値が返ります
 enum InputFormat {
     Json,
     Yaml,
@@ -74,7 +73,7 @@ pub fn main() {
             output = OutputGroup,
         }
 
-        arg_opt {
+        arg_opt(use_default = yes) {
             input_format = InputFormat,
         }
 
