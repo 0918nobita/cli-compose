@@ -147,12 +147,11 @@ pub fn parse(input: TokenStream) -> syn::Result<TokenStream> {
                 },
 
                 ArgKind::Opt => quote! {
-                    let names = if let Some(short) = <#path as cli_rs::AsOpt>::short() {
-                        format!("{}, {}", short, <#path as cli_rs::AsOpt>::long())
-                    } else {
-                        format!("{}", <#path as cli_rs::AsOpt>::long())
-                    };
-                    println!("    {}: {}", names, <#path as cli_rs::AsOpt>::description());
+                    println!(
+                        "    {}: {}",
+                        <#path as cli_rs::AsOpt>::flag(),
+                        <#path as cli_rs::AsOpt>::description()
+                    );
                 },
 
                 ArgKind::Group => quote! {

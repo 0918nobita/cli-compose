@@ -30,25 +30,21 @@ pub fn derive_opt(input: TokenStream) -> syn::Result<TokenStream> {
         .ok_or_else(|| OptErr::new(OptErrKind::InvalidStruct, derive_input.to_token_stream()))?;
 
     let OptAttr { long, short } = extract_opt_attr(derive_input.attrs.iter())?;
-    let short = match short {
-        Some(lit) => quote! { Some(cli_rs::ShortFlag::new(#lit)) },
-        None => quote! { None },
+
+    let struct_name = &derive_input.ident;
+    let long = long.unwrap_or_else(|| struct_name.to_string().to_case(Case::Kebab));
+
+    let flag = match short {
+        Some(short) => quote! { cli_rs::Flag::BothLongAndShort(#long.to_owned(), #short) },
+        None => quote! { cli_rs::Flag::LongOnly(#long.to_owned()) },
     };
 
     let doc = extract_doc(derive_input.attrs.iter());
 
-    let struct_name = derive_input.ident;
-    let struct_name_kebab_case =
-        long.unwrap_or_else(|| struct_name.to_string().to_case(Case::Kebab));
-
     Ok(quote! {
         impl cli_rs::AsOpt for #struct_name {
-            fn long() -> cli_rs::LongFlag {
-                cli_rs::LongFlag::new(#struct_name_kebab_case)
-            }
-
-            fn short() -> Option<cli_rs::ShortFlag> {
-                #short
+            fn flag() -> cli_rs::Flag {
+                #flag
             }
 
             fn description() -> String {
