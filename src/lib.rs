@@ -43,9 +43,7 @@ pub trait AsPosArg: Sized {
 }
 
 pub trait AsArgOpt: Sized {
-    fn long() -> LongFlag;
-
-    fn short() -> Option<ShortFlag>;
+    fn flag() -> Flag;
 
     fn description() -> String;
 

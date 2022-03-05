@@ -131,16 +131,19 @@ pub fn parse(input: TokenStream) -> syn::Result<TokenStream> {
 
             dump_code.extend(match kind {
                 ArgKind::PosArg => quote! {
-                    println!("    {}: {}", <#path as cli_rs::AsPosArg>::name(), <#path as cli_rs::AsPosArg>::description());
+                    println!(
+                        "    {}: {}",
+                        <#path as cli_rs::AsPosArg>::name(),
+                        <#path as cli_rs::AsPosArg>::description()
+                    );
                 },
 
                 ArgKind::ArgOpt => quote! {
-                    let names = if let Some(short) = <#path as cli_rs::AsArgOpt>::short() {
-                        format!("{}, {}", short, <#path as cli_rs::AsArgOpt>::long())
-                    } else {
-                        format!("{}", <#path as cli_rs::AsArgOpt>::long())
-                    };
-                    println!("    {}: {}", names, <#path as cli_rs::AsArgOpt>::description());
+                    println!(
+                        "    {}: {}",
+                        <#path as cli_rs::AsArgOpt>::flag(),
+                        <#path as cli_rs::AsArgOpt>::description()
+                    );
                 },
 
                 ArgKind::Opt => quote! {

@@ -40,26 +40,23 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
             })?;
 
             let ArgOptAttr { long, short } = extract_arg_opt_attr(derive_input.attrs.iter())?;
-            let short = match short {
-                Some(lit) => quote! { Some(cli_rs::ShortFlag::new(#lit)) },
-                None => quote! { None },
+
+            let struct_name = &derive_input.ident;
+            let long = long.unwrap_or_else(|| struct_name.to_string().to_case(Case::Kebab));
+
+            let flag = match short {
+                Some(short) => quote! { cli_rs::Flag::BothLongAndShort(#long.to_owned(), #short) },
+                None => quote! { cli_rs::Flag::LongOnly(#long.to_owned()) },
             };
 
             let doc = extract_doc(derive_input.attrs.iter());
 
             let ty = field.ty.clone();
-            let struct_name = &derive_input.ident;
-            let struct_name_kebab_case =
-                long.unwrap_or_else(|| struct_name.to_string().to_case(Case::Kebab));
 
             Ok(quote! {
                 impl cli_rs::AsArgOpt for #struct_name {
-                    fn long() -> cli_rs::LongFlag {
-                        cli_rs::LongFlag::new(#struct_name_kebab_case)
-                    }
-
-                    fn short() -> Option<cli_rs::ShortFlag> {
-                        #short
+                    fn flag() -> cli_rs::Flag {
+                        #flag
                     }
 
                     fn description() -> String {
@@ -76,25 +73,21 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
 
         Data::Enum(_) => {
             let ArgOptAttr { long, short } = extract_arg_opt_attr(derive_input.attrs.iter())?;
-            let short = match short {
-                Some(lit) => quote! { Some(cli_rs::ShortFlag::new(#lit)) },
-                None => quote! { None },
+
+            let enum_name = &derive_input.ident;
+            let long = long.unwrap_or_else(|| enum_name.to_string().to_case(Case::Kebab));
+
+            let flag = match short {
+                Some(short) => quote! { cli_rs::Flag::BothLongAndShort(#long.to_owned(), #short) },
+                None => quote! { cli_rs::Flag::LongOnly(#long.to_owned()) },
             };
 
             let doc = extract_doc(derive_input.attrs.iter());
 
-            let enum_name = &derive_input.ident;
-            let enum_name_kebab_case =
-                long.unwrap_or_else(|| enum_name.to_string().to_case(Case::Kebab));
-
             Ok(quote! {
                 impl cli_rs::AsArgOpt for #enum_name {
-                    fn long() -> cli_rs::LongFlag {
-                        cli_rs::LongFlag::new(#enum_name_kebab_case)
-                    }
-
-                    fn short() -> Option<cli_rs::ShortFlag> {
-                        #short
+                    fn flag() -> cli_rs::Flag {
+                        #flag
                     }
 
                     fn description() -> String {
