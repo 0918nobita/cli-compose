@@ -1,4 +1,3 @@
-mod attr_meta;
 mod deriver;
 mod doc;
 mod parse;

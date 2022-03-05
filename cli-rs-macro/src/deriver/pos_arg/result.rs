@@ -5,18 +5,6 @@ use proc_macro2::TokenStream;
 pub enum PosArgErrKind {
     #[display(fmt = "#[derive(PosArg)] can only be applied to structs with single unnamed field")]
     InvalidStruct,
-
-    #[display(fmt = "Literals in #[pos_arg(..)] are not allowed")]
-    UnexpectedLit,
-
-    #[display(fmt = "Metadata in #[pos_arg(..)] is invalid")]
-    InvalidMeta,
-
-    #[display(fmt = "#[pos_arg(name = ..)] must be a string literal")]
-    InvalidNameValue,
-
-    #[display(fmt = "Unexpected key in #[pos_arg(..)]")]
-    UnexpectedKey,
 }
 
 pub struct PosArgErr {
@@ -35,5 +23,3 @@ impl From<PosArgErr> for syn::Error {
         syn::Error::new_spanned(err.tokens, err.kind.to_string())
     }
 }
-
-pub type PosArgResult<T> = Result<T, PosArgErr>;

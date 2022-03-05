@@ -18,7 +18,6 @@ enum InputGroup {
 
 /// ソースファイルの形式
 #[derive(Debug, ArgOpt, FromKebabStr)]
-#[arg_opt(default)]
 enum InputFormat {
     Json,
 
