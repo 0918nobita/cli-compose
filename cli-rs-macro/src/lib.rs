@@ -12,6 +12,7 @@ macro_rules! wrap_derive_fn {
     };
 }
 
+/// フィールドを持たないヴァリアントのみで構成される列挙型に対して、ケバブケースの文字列から変換できるように [`std::str::FromStr`] を実装する
 #[proc_macro_derive(FromKebabStr)]
 pub fn derive_from_kebab_str(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_from_kebab_str, input)

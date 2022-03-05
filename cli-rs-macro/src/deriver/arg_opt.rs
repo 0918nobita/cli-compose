@@ -1,7 +1,10 @@
 mod result;
 
 use convert_case::{Case, Casing};
-use darling::FromDeriveInput;
+use darling::{
+    ast::{self, Data},
+    FromDeriveInput,
+};
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
@@ -13,7 +16,7 @@ use crate::doc::extract_doc;
 struct ArgOptInput {
     ident: syn::Ident,
 
-    data: darling::ast::Data<syn::Ident, syn::Field>,
+    data: Data<syn::Ident, syn::Field>,
 
     attrs: Vec<syn::Attribute>,
 
@@ -33,7 +36,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
     };
 
     match &input.data {
-        darling::ast::Data::Enum(_) => {
+        Data::Enum(_) => {
             let enum_name = &input.ident;
 
             let long = input
@@ -64,9 +67,9 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
             })
         }
 
-        darling::ast::Data::Struct(
-            fields @ darling::ast::Fields {
-                style: darling::ast::Style::Tuple,
+        Data::Struct(
+            fields @ ast::Fields {
+                style: ast::Style::Tuple,
                 fields: fields_vec,
                 ..
             },
@@ -114,7 +117,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
             })
         }
 
-        darling::ast::Data::Struct(fields) => {
+        Data::Struct(fields) => {
             Err(ArgOptErr::new(ArgOptErrKind::InvalidTypeDef, fields.to_token_stream()).into())
         }
     }

@@ -1,30 +1,32 @@
 use convert_case::{Case, Casing};
+use darling::{ast::Data, FromDeriveInput};
 use proc_macro2::TokenStream;
 use quote::quote;
 
-static INVALID_DERIVE_INPUT: &str =
-    "`#[derive(FromKebabStr)]` can only be applied to enums whose variants have no field";
+#[derive(FromDeriveInput)]
+struct FromKebabStr {
+    ident: syn::Ident,
+
+    data: Data<syn::Ident, syn::Field>,
+}
 
 pub fn derive_from_kebab_str(input: TokenStream) -> syn::Result<TokenStream> {
-    let derive_input = syn::parse2::<syn::DeriveInput>(input)?;
+    let input = syn::parse2::<syn::DeriveInput>(input)?;
 
-    let ty_name = &derive_input.ident;
+    let input = match FromKebabStr::from_derive_input(&input) {
+        Ok(input) => input,
+        Err(err) => return Ok(err.write_errors()),
+    };
 
-    let data_enum = match &derive_input.data {
-        syn::Data::Enum(data_enum) => Ok(data_enum),
-        _ => Err(syn::Error::new_spanned(&derive_input, INVALID_DERIVE_INPUT)),
+    let ty_name = &input.ident;
+
+    let variants = match &input.data {
+        Data::Enum(variants) => Ok(variants),
+        Data::Struct(fields) => Err(syn::Error::new_spanned(
+            &fields,
+            "`#[derive(FromKebabStr)]` can only be applied to enums whose variants have no field",
+        )),
     }?;
-
-    let mut variants = Vec::<syn::Ident>::new();
-
-    for variant in &data_enum.variants {
-        match &variant.fields {
-            syn::Fields::Unit => {}
-            _ => return Err(syn::Error::new_spanned(&variant, INVALID_DERIVE_INPUT)),
-        }
-
-        variants.push(variant.ident.clone());
-    }
 
     let arms = variants
         .iter()
