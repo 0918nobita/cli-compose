@@ -19,4 +19,4 @@ version = "1.0.86"
 features = ["full", "extra-traits"]
 
 [dev-dependencies]
-insta = "1.12.0"
+insta = "1.13.0"
