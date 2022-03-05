@@ -5,26 +5,6 @@ use derive_more::Display;
 pub use cli_rs_macro::{parse, ArgOpt, FromKebabStr, Group, Opt, PosArg};
 
 #[derive(Display)]
-#[display(fmt = "--{}", _0)]
-pub struct LongFlag(String);
-
-impl LongFlag {
-    pub fn new(s: &str) -> Self {
-        Self(s.to_owned())
-    }
-}
-
-#[derive(Display)]
-#[display(fmt = "-{}", _0)]
-pub struct ShortFlag(char);
-
-impl ShortFlag {
-    pub fn new(c: char) -> Self {
-        Self(c)
-    }
-}
-
-#[derive(Display)]
 pub enum Flag {
     #[display(fmt = "--{}", _0)]
     LongOnly(String),
