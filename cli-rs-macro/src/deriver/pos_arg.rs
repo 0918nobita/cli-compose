@@ -25,7 +25,7 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
         Err(err) => return Ok(err.write_errors()),
     };
 
-    let doc = extract_doc(input.attrs.iter());
+    let doc = extract_doc(&input.attrs);
 
     let struct_name = &input.ident;
     let struct_name_kebab_case = input

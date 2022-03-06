@@ -1,22 +1,23 @@
-use syn::Attribute;
+use syn::{Attribute, Lit, Meta};
 
 fn try_get_single_line_doc(attr: &Attribute) -> Option<String> {
     let meta = attr.parse_meta().ok()?;
-    match meta {
-        syn::Meta::NameValue(syn::MetaNameValue {
+
+    let lit_str = match meta {
+        Meta::NameValue(syn::MetaNameValue {
             path,
-            lit: syn::Lit::Str(lit_str),
+            lit: Lit::Str(lit_str),
             ..
-        }) if path.is_ident("doc") => Some(lit_str.value().trim_start().to_owned()),
-        _ => None,
-    }
+        }) if path.is_ident("doc") => lit_str,
+        _ => return None,
+    };
+
+    Some(lit_str.value().trim_start().to_owned())
 }
 
-pub fn extract_doc<'a, A>(attrs: A) -> String
-where
-    A: Iterator<Item = &'a Attribute> + 'a,
-{
+pub fn extract_doc(attrs: &[Attribute]) -> String {
     attrs
+        .iter()
         .filter_map(try_get_single_line_doc)
         .collect::<Vec<_>>()
         .join("\n")

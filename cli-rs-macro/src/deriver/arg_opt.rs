@@ -48,7 +48,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
                 None => quote! { cli_rs::Flag::LongOnly(#long.to_owned()) },
             };
 
-            let doc = extract_doc(input.attrs.iter());
+            let doc = extract_doc(&input.attrs);
 
             Ok(quote! {
                 impl cli_rs::AsArgOpt for #enum_name {
@@ -95,7 +95,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
                 None => quote! { cli_rs::Flag::LongOnly(#long.to_owned()) },
             };
 
-            let doc = extract_doc(input.attrs.iter());
+            let doc = extract_doc(&input.attrs);
 
             let ty = field.ty.clone();
 

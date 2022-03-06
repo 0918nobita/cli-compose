@@ -39,7 +39,7 @@ pub fn derive_opt(input: TokenStream) -> syn::Result<TokenStream> {
         None => quote! { cli_rs::Flag::LongOnly(#long.to_owned()) },
     };
 
-    let doc = extract_doc(input.attrs.iter());
+    let doc = extract_doc(&input.attrs);
 
     Ok(quote! {
         impl cli_rs::AsOpt for #struct_name {
