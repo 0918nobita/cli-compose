@@ -1,4 +1,6 @@
-# CLI 開発支援ライブラリ
+# cli-rs
+
+> Next-generation, type-safe CLI parser for Rust
 
 [clap](https://crates.io/crates/clap) クレートの代替となることを目指して開発を進めています。
 
