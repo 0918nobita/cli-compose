@@ -6,11 +6,6 @@
 
 列挙した引数のうち１つだけを指定するように強制し、パースに成功すると列挙型の値で返します。
 
-位置指定引数、引数付きオプション、または引数なしオプションを唯一のフィールドとして持つヴァリアントで構成されている列挙型に `#[derive(Group)]` を付与し、属性 `#[group(one)]` を指定してください。
-
-以下の例では、位置指定引数 `[input]` か引数なしオプション `--stdin` のどちらか１つだけを指定するように強制しています。
-名前 `input` は、結果として `InputGroup` 列挙型の値で束縛されます。
-
 ```rust
 use cli_rs::{Group, Opt};
 
@@ -28,37 +23,30 @@ enum InputGroup {
     Stdin(StdinOpt),
 }
 
-fn main() {
-    cli_rs::parse!(
-        std::env::args(),
+cli_rs::parser!(
+    Cli,
+    group(explicit = yes) {
+        input: InputGroup,
+    }
+);
 
-        group(explicit = yes) {
-            input = InputGroup,
-        }
-    );
+fn main() {
+    Cli::parse(std::env::args());
 }
 ```
 
 ## 「省略、または１つだけ」というルールを設ける場合
 
-属性 `#[group(one)]` を付与したグループを `parse!` マクロの引数においてオプショナルとして指定することで実現します。
-
 ```rust
-...
-fn main() {
-    cli_rs::parse!(
-        std::env::args(),
-
-        group(required = no, explicit = yes) {
-            input = InputGroup,
-        }
-    );
-}
+cli_rs::parser!(
+    Cli,
+    group(required = no, explicit = yes) {
+        input: InputGroup,
+    }
+);
 ```
 
 ## 「１つ以上」というルールを設ける場合
-
-`#[group(at-least-one)]` 属性を指定してください。
 
 WIP
 
