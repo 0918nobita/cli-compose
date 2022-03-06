@@ -68,16 +68,16 @@ cli_rs::parser!(
     Cli,
 
     group(count = one, explicit = yes) {
-        InputGroup,
-        OutputGroup,
+        input: InputGroup,
+        output: OutputGroup,
     }
 
     arg_opt(use_default = yes) {
-        InputFormat,
+        input_format: InputFormat,
     }
 
     opt {
-        Verbose,
+        verbose: Verbose,
     }
 );
 

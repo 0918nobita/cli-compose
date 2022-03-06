@@ -5,6 +5,24 @@ use syn::{
     Ident, Token, TypePath,
 };
 
+struct FieldSchema {
+    #[allow(dead_code)]
+    ident: Ident,
+    ty: TypePath,
+}
+
+impl Parse for FieldSchema {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let ident = input.parse::<Ident>()?;
+
+        input.parse::<Token![:]>()?;
+
+        let ty = input.parse::<TypePath>()?;
+
+        Ok(FieldSchema { ident, ty })
+    }
+}
+
 enum ArgKind {
     PosArg,
     ArgOpt,
@@ -50,7 +68,7 @@ impl ToString for ArgKind {
 
 struct Schema {
     kind: ArgKind,
-    binds: Vec<TypePath>,
+    field_schemas: Vec<FieldSchema>,
 }
 
 impl Parse for Schema {
@@ -62,13 +80,15 @@ impl Parse for Schema {
         let content;
         syn::braced!(content in input);
 
-        let binds = content
-            .parse_terminated::<TypePath, Token![,]>(TypePath::parse)?
-            .iter()
-            .cloned()
+        let field_schemas = content
+            .parse_terminated::<FieldSchema, Token![,]>(FieldSchema::parse)?
+            .into_iter()
             .collect::<Vec<_>>();
 
-        Ok(Self { kind, binds })
+        Ok(Self {
+            kind,
+            field_schemas,
+        })
     }
 }
 
@@ -112,6 +132,7 @@ pub fn parser(input: TokenStream) -> syn::Result<TokenStream> {
                     let version = env!("CARGO_PKG_VERSION");
                     let description = env!("CARGO_PKG_DESCRIPTION");
                     println!("{} {}\n{}", name, version, description);
+                    std::process::exit(0);
                 }
 
                 todo!()
@@ -126,11 +147,15 @@ pub fn parser_old(input: TokenStream) -> syn::Result<TokenStream> {
 
     let mut dump_code = TokenStream::new();
 
-    for Schema { kind, binds } in schemas {
+    for Schema {
+        kind,
+        field_schemas,
+    } in schemas
+    {
         let kind_str = kind.to_string();
         dump_code.extend(quote! { println!("[{}]", #kind_str); });
 
-        for path in binds {
+        for FieldSchema { ty: path, .. } in field_schemas {
             let path_str = path.to_token_stream().to_string();
 
             dump_code.extend(match kind {
