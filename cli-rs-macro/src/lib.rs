@@ -1,6 +1,6 @@
 mod deriver;
 mod doc;
-mod parse;
+mod parser;
 
 use proc_macro::TokenStream;
 
@@ -44,6 +44,6 @@ pub fn derive_group(input: TokenStream) -> TokenStream {
 
 /// コマンドライン引数をパースする
 #[proc_macro]
-pub fn parse(input: TokenStream) -> TokenStream {
-    wrap_derive_fn!(parse::parse, input)
+pub fn parser(input: TokenStream) -> TokenStream {
+    wrap_derive_fn!(parser::parser, input)
 }

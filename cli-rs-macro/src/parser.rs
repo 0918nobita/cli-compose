@@ -2,26 +2,8 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
-    Expr, Pat, Token, TypePath,
+    Ident, Token, TypePath,
 };
-
-#[derive(Clone)]
-struct ArgBind {
-    pat: Pat,
-    path: TypePath,
-}
-
-impl Parse for ArgBind {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let pat = input.parse::<Pat>()?;
-
-        input.parse::<Token![=]>()?;
-
-        let path = input.parse::<TypePath>()?;
-
-        Ok(Self { pat, path })
-    }
-}
 
 enum ArgKind {
     PosArg,
@@ -30,10 +12,10 @@ enum ArgKind {
     Group,
 }
 
-impl TryFrom<syn::Ident> for ArgKind {
+impl TryFrom<Ident> for ArgKind {
     type Error = syn::Error;
 
-    fn try_from(ident: syn::Ident) -> Result<Self, Self::Error> {
+    fn try_from(ident: Ident) -> Result<Self, Self::Error> {
         match &*ident.to_string() {
             "pos_arg" => Ok(Self::PosArg),
 
@@ -66,14 +48,14 @@ impl ToString for ArgKind {
     }
 }
 
-struct ArgBindGroup {
+struct Schema {
     kind: ArgKind,
-    binds: Vec<ArgBind>,
+    binds: Vec<TypePath>,
 }
 
-impl Parse for ArgBindGroup {
+impl Parse for Schema {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let ident = input.parse::<syn::Ident>()?;
+        let ident = input.parse::<Ident>()?;
 
         let kind = ArgKind::try_from(ident)?;
 
@@ -81,7 +63,7 @@ impl Parse for ArgBindGroup {
         syn::braced!(content in input);
 
         let binds = content
-            .parse_terminated::<ArgBind, Token![,]>(ArgBind::parse)?
+            .parse_terminated::<TypePath, Token![,]>(TypePath::parse)?
             .iter()
             .cloned()
             .collect::<Vec<_>>();
@@ -90,43 +72,56 @@ impl Parse for ArgBindGroup {
     }
 }
 
-struct ArgTypes {
-    args: Expr,
-    arg_bind_groups: Vec<ArgBindGroup>,
+struct ParserMacroInput {
+    ty_name: Ident,
+    schemas: Vec<Schema>,
 }
 
-impl Parse for ArgTypes {
+impl Parse for ParserMacroInput {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let args = input.call(Expr::parse_without_eager_brace)?;
+        let ty_name = input.call(Ident::parse)?;
 
         input.parse::<Token![,]>()?;
 
-        let mut arg_bind_groups = Vec::<ArgBindGroup>::new();
+        let mut schemas = Vec::<Schema>::new();
         while !input.is_empty() {
-            let arg_bind_group = input.parse::<ArgBindGroup>()?;
-            arg_bind_groups.push(arg_bind_group);
+            let schema = input.parse::<Schema>()?;
+            schemas.push(schema);
         }
 
-        Ok(Self {
-            args,
-            arg_bind_groups,
-        })
+        Ok(Self { ty_name, schemas })
     }
 }
 
-pub fn parse(input: TokenStream) -> syn::Result<TokenStream> {
-    let ArgTypes {
-        args,
-        arg_bind_groups,
-    } = syn::parse2::<ArgTypes>(input)?;
+pub fn parser(input: TokenStream) -> syn::Result<TokenStream> {
+    let ParserMacroInput {
+        ty_name,
+        schemas: _schemas,
+    } = syn::parse2::<ParserMacroInput>(input)?;
+
+    Ok(quote! {
+        struct #ty_name {
+        }
+
+        impl #ty_name {
+            fn parse(args: impl Iterator<Item = String>) -> Self {
+                todo!()
+            }
+        }
+    })
+}
+
+#[allow(dead_code)]
+pub fn parser_old(input: TokenStream) -> syn::Result<TokenStream> {
+    let ParserMacroInput { schemas, .. } = syn::parse2::<ParserMacroInput>(input)?;
 
     let mut dump_code = TokenStream::new();
 
-    for ArgBindGroup { kind, binds } in arg_bind_groups {
+    for Schema { kind, binds } in schemas {
         let kind_str = kind.to_string();
         dump_code.extend(quote! { println!("[{}]", #kind_str); });
 
-        for ArgBind { pat: _pat, path } in binds {
+        for path in binds {
             let path_str = path.to_token_stream().to_string();
 
             dump_code.extend(match kind {
@@ -163,11 +158,5 @@ pub fn parse(input: TokenStream) -> syn::Result<TokenStream> {
         }
     }
 
-    Ok(quote! {
-        {
-            #dump_code
-            let tokens = cli_rs::parse_into_tokens(#args).collect::<Vec<_>>();
-            println!("tokens: {:?}", tokens);
-        }
-    })
+    Ok(dump_code)
 }

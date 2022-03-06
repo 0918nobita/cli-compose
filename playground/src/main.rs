@@ -51,18 +51,20 @@ enum OutputGroup {
 #[derive(Opt)]
 struct Verbose;
 
+cli_rs::parser!(
+    Cli,
+    pos_arg {
+        Input,
+    }
+    arg_opt {
+        InputFormat,
+        Output,
+    }
+    opt {
+        Verbose,
+    }
+);
+
 fn main() {
-    cli_rs::parse!(
-        std::env::args(),
-        pos_arg {
-            input = Input,
-        }
-        arg_opt {
-            input_format = InputFormat,
-            output = Output,
-        }
-        opt {
-            verbose = Verbose,
-        }
-    );
+    let _cli = Cli::parse(std::env::args());
 }

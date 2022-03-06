@@ -64,28 +64,30 @@ enum OutputGroup {
 #[derive(Opt)]
 struct Verbose;
 
+cli_rs::parser!(
+    Cli,
+
+    group(count = one, explicit = yes) {
+        InputGroup,
+        OutputGroup,
+    }
+
+    arg_opt(use_default = yes) {
+        InputFormat,
+    }
+
+    opt {
+        Verbose,
+    }
+);
+
 pub fn main() {
-    cli_rs::parse!(
-        std::env::args(),
+    let cli = Cli::parse(std::env::args());
 
-        group(count = one, explicit = yes) {
-            input = InputGroup,
-            output = OutputGroup,
-        }
-
-        arg_opt(use_default = yes) {
-            input_format = InputFormat,
-        }
-
-        opt {
-            verbose = Verbose,
-        }
-    );
-
-    println!("Input: {:?}", input);
-    println!("InputFormat: {:?}", input_format);
-    println!("Output: {:?}", output);
-    println!("Verbose: {:?}", verbose);
+    println!("Input: {:?}", cli.input);
+    println!("InputFormat: {:?}", cli.input_format);
+    println!("Output: {:?}", cli.output);
+    println!("Verbose: {:?}", cli.verbose);
 }
 ```
 
