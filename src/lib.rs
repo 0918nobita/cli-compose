@@ -42,7 +42,7 @@ pub trait AsGroup: Sized {
     fn description() -> String;
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Token {
     Long(String),
     Short(char),

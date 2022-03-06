@@ -105,6 +105,15 @@ pub fn parser(input: TokenStream) -> syn::Result<TokenStream> {
 
         impl #ty_name {
             fn parse(args: impl Iterator<Item = String>) -> Self {
+                let tokens = cli_rs::parse_into_tokens(args).collect::<Vec<_>>();
+
+                if tokens.iter().any(|token| *token == cli_rs::Token::Long("help".to_owned())) {
+                    let name = env!("CARGO_PKG_NAME");
+                    let version = env!("CARGO_PKG_VERSION");
+                    let description = env!("CARGO_PKG_DESCRIPTION");
+                    println!("{} {}\n{}", name, version, description);
+                }
+
                 todo!()
             }
         }
