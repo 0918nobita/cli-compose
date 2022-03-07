@@ -54,13 +54,13 @@ struct Verbose;
 cli_rs::parser!(
     Cli,
 
-    pos_arg Input: input
+    pos_arg Input
 
-    arg_opt(use_default = yes) InputFormat: input_format
+    arg_opt(use_default = yes) InputFormat: format
 
-    arg_opt Output: output
+    arg_opt Output
 
-    opt Verbose: verbose
+    opt Verbose
 );
 
 fn main() {
