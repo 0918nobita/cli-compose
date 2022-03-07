@@ -25,9 +25,7 @@ enum InputGroup {
 
 cli_rs::parser!(
     Cli,
-    group(explicit = yes) {
-        input: InputGroup,
-    }
+    group(explicit = yes) InputGroup: input,
 );
 
 fn main() {
@@ -40,9 +38,7 @@ fn main() {
 ```rust
 cli_rs::parser!(
     Cli,
-    group(required = no, explicit = yes) {
-        input: InputGroup,
-    }
+    group(required = no, explicit = yes) InputGroup: input,
 );
 ```
 
@@ -50,41 +46,17 @@ cli_rs::parser!(
 
 WIP
 
-<!--
-```rust
-#[derive(Group)]
-#[group(at-least-one)]
-
-```
--->
-
-## グループ修飾子について
-
-<!--
-### count
-
-グループのメンバーで指定できる個数を設定します。
-
-#### 取りうる値とその意味
-
-- `one`：１つだけ指定
-- `zero-or-one`：省略または１つだけ指定
-- `at-least-one`：少なくとも１つ指定
-- `any`：任意の個数指定
-
-#### デフォルト値
-
-`one`
-
--->
+## 修飾子
 
 ### required
 
-WIP
+その引数を必須にするかどうかを設定します。  
+設定値によって、`parser!` マクロで指定した型 `T` に対する戻り値の型が変わります。
 
 #### 取りうる値とその意味
 
-WIP
+- `yes`：必須。戻り値の型は `T` のままです。
+- `no`：省略可能。戻り値の型は `Option<T>` に変わります。
 
 #### デフォルト値
 

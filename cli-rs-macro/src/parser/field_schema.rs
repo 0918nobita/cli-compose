@@ -7,11 +7,11 @@ pub struct FieldSchema {
 
 impl parse::Parse for FieldSchema {
     fn parse(input: parse::ParseStream) -> syn::Result<Self> {
-        let ident = input.parse::<Ident>()?;
+        let ty = input.parse::<TypePath>()?;
 
         input.parse::<syn::Token![:]>()?;
 
-        let ty = input.parse::<TypePath>()?;
+        let ident = input.parse::<Ident>()?;
 
         Ok(FieldSchema { ident, ty })
     }

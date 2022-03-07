@@ -70,17 +70,13 @@ cli_rs::parser!(
     Cli,
 
     group(count = one, explicit = yes) {
-        input: InputGroup,
-        output: OutputGroup,
+        InputGroup: input,
+        OutputGroup: output,
     }
 
-    arg_opt(use_default = yes) {
-        input_format: InputFormat,
-    }
+    arg_opt(use_default = yes) InputFormat,
 
-    opt {
-        verbose: Verbose,
-    }
+    opt Verbose,
 );
 
 pub fn main() {
