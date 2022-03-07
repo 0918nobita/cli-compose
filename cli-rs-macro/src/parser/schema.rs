@@ -1,30 +1,66 @@
-use syn::parse;
+use syn::{
+    parse::{Parse, ParseStream},
+    Ident, Token,
+};
 
-use super::field_schema::FieldSchema;
-use crate::parser::arg_kind::ArgKind;
+use super::{field_schema::FieldSchema, modifiers::Modifiers};
+use crate::parser::{arg_kind::ArgKind, modifier::Modifier};
 
 pub struct Schema {
     pub kind: ArgKind,
-    pub field_schemas: Vec<FieldSchema>,
+    pub modifiers: Modifiers,
+    pub data: SchemaData,
 }
 
-impl parse::Parse for Schema {
-    fn parse(input: parse::ParseStream) -> syn::Result<Self> {
-        let ident = input.parse::<syn::Ident>()?;
+pub enum SchemaData {
+    Single(FieldSchema),
+    Multiple(Vec<FieldSchema>),
+}
+
+impl Parse for Schema {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let ident = input.parse::<Ident>()?;
 
         let kind = ArgKind::try_from(ident)?;
 
-        let content;
-        syn::braced!(content in input);
+        let modifiers = if input.peek(syn::token::Paren) {
+            let parenthesized;
+            syn::parenthesized!(parenthesized in input);
 
-        let field_schemas = content
-            .parse_terminated::<FieldSchema, syn::Token![,]>(FieldSchema::parse)?
-            .into_iter()
-            .collect::<Vec<_>>();
+            let modifiers = parenthesized
+                .parse_terminated::<Modifier, Token![,]>(Modifier::parse)?
+                .into_iter()
+                .collect::<Vec<_>>();
+
+            match Modifiers::try_from_slice(modifiers.as_slice()) {
+                Ok(modifiers) => modifiers,
+                Err(modifier) => {
+                    return Err(syn::Error::new_spanned(modifier.name, "Duplicate modifier"))
+                }
+            }
+        } else {
+            Modifiers::default()
+        };
+
+        let data = if input.peek(syn::token::Brace) {
+            let braced;
+            syn::braced!(braced in input);
+
+            let field_schemas = braced
+                .parse_terminated::<FieldSchema, Token![,]>(FieldSchema::parse)?
+                .into_iter()
+                .collect::<Vec<_>>();
+
+            SchemaData::Multiple(field_schemas)
+        } else {
+            let field_schema = input.parse::<FieldSchema>()?;
+            SchemaData::Single(field_schema)
+        };
 
         Ok(Self {
             kind,
-            field_schemas,
+            modifiers,
+            data,
         })
     }
 }

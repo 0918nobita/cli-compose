@@ -53,16 +53,14 @@ struct Verbose;
 
 cli_rs::parser!(
     Cli,
-    pos_arg {
-        Input: input,
-    }
-    arg_opt {
-        InputFormat: input_format,
-        Output: output,
-    }
-    opt {
-        Verbose: verbose,
-    }
+
+    pos_arg Input: input
+
+    arg_opt(use_default = yes) InputFormat: input_format
+
+    arg_opt Output: output
+
+    opt Verbose: verbose
 );
 
 fn main() {
