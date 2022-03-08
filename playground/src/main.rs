@@ -1,4 +1,4 @@
-use cli_rs::{ArgOpt, FromKebabStr, Group, Opt, PosArg};
+use cli_compose::{ArgOpt, FromKebabStr, Group, Opt, PosArg};
 
 /// ソースファイルのパス
 #[derive(Debug, PosArg)]
@@ -51,7 +51,7 @@ enum OutputGroup {
 #[derive(Opt)]
 struct Verbose;
 
-cli_rs::parser!(
+cli_compose::parser!(
     Cli,
 
     pos_arg Input

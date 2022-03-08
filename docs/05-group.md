@@ -7,7 +7,7 @@
 列挙した引数のうち１つだけを指定するように強制し、パースに成功すると列挙型の値で返します。
 
 ```rust
-use cli_rs::{Group, Opt};
+use cli_compose::{Group, Opt};
 
 #[derive(PosArg)]
 struct Input(String);
@@ -23,7 +23,7 @@ enum InputGroup {
     Stdin(StdinOpt),
 }
 
-cli_rs::parser!(
+cli_compose::parser!(
     Cli,
     group(explicit = yes) InputGroup: input,
 );
@@ -36,7 +36,7 @@ fn main() {
 ## 「省略、または１つだけ」というルールを設ける場合
 
 ```rust
-cli_rs::parser!(
+cli_compose::parser!(
     Cli,
     group(required = no, explicit = yes) InputGroup: input,
 );

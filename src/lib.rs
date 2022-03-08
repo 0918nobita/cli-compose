@@ -2,7 +2,7 @@
 
 use derive_more::Display;
 
-pub use cli_rs_macro::{parser, ArgOpt, FromKebabStr, Group, Opt, PosArg};
+pub use cli_compose_macro::{parser, ArgOpt, FromKebabStr, Group, Opt, PosArg};
 
 #[derive(Display)]
 pub enum Flag {

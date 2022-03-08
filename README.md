@@ -1,4 +1,4 @@
-# cli-rs
+# cli-compose
 
 > Next-generation, type-safe CLI parser for Rust
 
@@ -20,7 +20,7 @@
 <summary>コード例</summary>
 
 ```rust
-use cli_rs::{ArgOpt, FromKebabStr, Group, Opt, PosArg};
+use cli_compose::{ArgOpt, FromKebabStr, Group, Opt, PosArg};
 
 // ドキュメンテーションコメントはヘルプメッセージとして扱われます
 
@@ -73,7 +73,7 @@ enum OutputGroup {
 #[derive(Opt)]
 struct Verbose;
 
-cli_rs::parser!(
+cli_compose::parser!(
     Cli,
 
     group InputGroup: input
@@ -102,7 +102,7 @@ pub fn main() {
 <summary>コード例</summary>
 
 ```rust
-use cli_rs::FromKebabStr;
+use cli_compose::FromKebabStr;
 
 /// ソースファイルの形式
 #[derive(Debug, FromKebabStr)]
@@ -117,7 +117,7 @@ impl Default for InputFormat {
     }
 }
 
-cli_rs::parser!(
+cli_compose::parser!(
     Cli,
 
     def Input = pos_arg String [ desc = "入力ファイルのパス" ];

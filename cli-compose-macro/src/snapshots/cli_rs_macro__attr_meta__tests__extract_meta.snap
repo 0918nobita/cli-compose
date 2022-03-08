@@ -1,5 +1,5 @@
 ---
-source: cli-rs-macro/src/attr_meta.rs
+source: cli-compose-macro/src/attr_meta.rs
 assertion_line: 45
 expression: "vec![foo, bar, baz]"
 ---

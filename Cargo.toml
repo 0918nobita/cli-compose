@@ -1,15 +1,15 @@
 [workspace]
 members = [
-    "cli-rs-macro",
+    "cli-compose-macro",
     "playground",
 ]
 
 [package]
-name = "cli-rs"
+name = "cli-compose"
 version = "0.1.0"
 description = "Type-safe command line parser"
 authors = ["Kodai Matsumoto <nobita.0918@gmail.com>"]
-repository = "https://github.com/0918nobita/cli-rs"
+repository = "https://github.com/0918nobita/cli-compose"
 categories = ["command-line-interface"]
 keywords = [
     "argument",
@@ -30,7 +30,7 @@ include = [
 ]
 
 [dependencies]
-cli-rs-macro = { path = "./cli-rs-macro" }
+cli-compose-macro = { path = "./cli-compose-macro" }
 derive_more = "0.99.17"
 
 [profile.release]

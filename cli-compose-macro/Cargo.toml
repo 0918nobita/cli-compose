@@ -1,5 +1,5 @@
 [package]
-name = "cli-rs-macro"
+name = "cli-compose-macro"
 version = "0.1.0"
 authors = ["Kodai Matsumoto <nobita.0918@gmail.com>"]
 license = "MIT"

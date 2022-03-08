@@ -44,15 +44,17 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
                 .unwrap_or_else(|| input.ident.to_string().to_case(Case::Kebab));
 
             let flag = match input.short {
-                Some(short) => quote! { cli_rs::Flag::BothLongAndShort(#long.to_owned(), #short) },
-                None => quote! { cli_rs::Flag::LongOnly(#long.to_owned()) },
+                Some(short) => {
+                    quote! { cli_compose::Flag::BothLongAndShort(#long.to_owned(), #short) }
+                }
+                None => quote! { cli_compose::Flag::LongOnly(#long.to_owned()) },
             };
 
             let doc = extract_doc(&input.attrs);
 
             Ok(quote! {
-                impl cli_rs::AsArgOpt for #enum_name {
-                    fn flag() -> cli_rs::Flag {
+                impl cli_compose::AsArgOpt for #enum_name {
+                    fn flag() -> cli_compose::Flag {
                         #flag
                     }
 
@@ -91,8 +93,10 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
                 .unwrap_or_else(|| struct_name.to_string().to_case(Case::Kebab));
 
             let flag = match input.short {
-                Some(short) => quote! { cli_rs::Flag::BothLongAndShort(#long.to_owned(), #short) },
-                None => quote! { cli_rs::Flag::LongOnly(#long.to_owned()) },
+                Some(short) => {
+                    quote! { cli_compose::Flag::BothLongAndShort(#long.to_owned(), #short) }
+                }
+                None => quote! { cli_compose::Flag::LongOnly(#long.to_owned()) },
             };
 
             let doc = extract_doc(&input.attrs);
@@ -100,8 +104,8 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
             let ty = field.ty.clone();
 
             Ok(quote! {
-                impl cli_rs::AsArgOpt for #struct_name {
-                    fn flag() -> cli_rs::Flag {
+                impl cli_compose::AsArgOpt for #struct_name {
+                    fn flag() -> cli_compose::Flag {
                         #flag
                     }
 
