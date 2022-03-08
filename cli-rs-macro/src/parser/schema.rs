@@ -11,7 +11,7 @@ use crate::parser::{arg_kind::ArgKind, modifier::Modifier};
 pub struct Schema {
     pub kind: ArgKind,
     pub modifiers: Modifiers,
-    pub data: SchemaData,
+    pub field_schemas: Vec<FieldSchema>,
 }
 
 impl fmt::Debug for Schema {
@@ -19,15 +19,9 @@ impl fmt::Debug for Schema {
         write!(
             f,
             "Schema({:?}, {:?}, {:?})",
-            self.kind, self.modifiers, self.data
+            self.kind, self.modifiers, self.field_schemas
         )
     }
-}
-
-#[derive(Debug)]
-pub enum SchemaData {
-    Single(FieldSchema),
-    Multiple(Vec<FieldSchema>),
 }
 
 impl Parse for Schema {
@@ -55,25 +49,23 @@ impl Parse for Schema {
             Modifiers::default()
         };
 
-        let data = if input.peek(syn::token::Brace) {
+        let field_schemas = if input.peek(syn::token::Brace) {
             let braced;
             syn::braced!(braced in input);
 
-            let field_schemas = braced
+            braced
                 .parse_terminated::<FieldSchema, Token![,]>(FieldSchema::parse)?
                 .into_iter()
-                .collect::<Vec<_>>();
-
-            SchemaData::Multiple(field_schemas)
+                .collect::<Vec<_>>()
         } else {
             let field_schema = input.parse::<FieldSchema>()?;
-            SchemaData::Single(field_schema)
+            vec![field_schema]
         };
 
         Ok(Self {
             kind,
             modifiers,
-            data,
+            field_schemas,
         })
     }
 }

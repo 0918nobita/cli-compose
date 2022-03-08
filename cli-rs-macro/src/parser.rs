@@ -8,10 +8,23 @@ mod schema;
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use self::macro_input::ParserMacroInput;
+use self::{arg_kind::ArgKind, macro_input::ParserMacroInput};
 
 pub fn parser(input: TokenStream) -> syn::Result<TokenStream> {
-    let ParserMacroInput { ty_name, .. } = syn::parse2::<ParserMacroInput>(input)?;
+    let ParserMacroInput { ty_name, schemas } = syn::parse2::<ParserMacroInput>(input)?;
+
+    let mut field_binds = std::collections::HashMap::<String, ArgKind>::new();
+
+    for schema in schemas {
+        for field in schema.field_schemas {
+            if field_binds
+                .insert(field.ident.to_string(), schema.kind.clone())
+                .is_some()
+            {
+                return Err(syn::Error::new_spanned(field.ident, "Duplicate field name"));
+            }
+        }
+    }
 
     Ok(quote! {
         struct #ty_name {
