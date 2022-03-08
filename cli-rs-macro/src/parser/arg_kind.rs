@@ -1,5 +1,6 @@
 use syn::Ident;
 
+#[derive(Debug)]
 pub enum ArgKind {
     PosArg,
     ArgOpt,

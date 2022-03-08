@@ -1,3 +1,5 @@
+use std::fmt;
+
 use syn::{
     parse::{Parse, ParseStream},
     Ident, Token,
@@ -12,6 +14,17 @@ pub struct Schema {
     pub data: SchemaData,
 }
 
+impl fmt::Debug for Schema {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Schema({:?}, {:?}, {:?})",
+            self.kind, self.modifiers, self.data
+        )
+    }
+}
+
+#[derive(Debug)]
 pub enum SchemaData {
     Single(FieldSchema),
     Multiple(Vec<FieldSchema>),

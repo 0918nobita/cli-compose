@@ -1,9 +1,17 @@
+use std::fmt;
+
 use super::modifier::Modifier;
 
 #[derive(Default)]
 pub struct Modifiers {
     #[allow(dead_code)]
     inner: std::collections::HashMap<String, String>,
+}
+
+impl fmt::Debug for Modifiers {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Modifiers {:?}", self.inner)
+    }
 }
 
 impl Modifiers {

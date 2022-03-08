@@ -1,9 +1,23 @@
+use std::fmt;
+
 use convert_case::{Case, Casing};
+use darling::ToTokens;
 use syn::{parse, Ident, Token, TypePath};
 
 pub struct FieldSchema {
-    pub ident: Ident,
     pub ty: TypePath,
+    pub ident: Ident,
+}
+
+impl fmt::Debug for FieldSchema {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "FieldSchema({}, {})",
+            self.ty.to_token_stream(),
+            self.ident,
+        )
+    }
 }
 
 impl parse::Parse for FieldSchema {

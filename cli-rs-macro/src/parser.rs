@@ -11,10 +11,7 @@ use quote::quote;
 use self::macro_input::ParserMacroInput;
 
 pub fn parser(input: TokenStream) -> syn::Result<TokenStream> {
-    let ParserMacroInput {
-        ty_name,
-        schemas: _schemas,
-    } = syn::parse2::<ParserMacroInput>(input)?;
+    let ParserMacroInput { ty_name, .. } = syn::parse2::<ParserMacroInput>(input)?;
 
     Ok(quote! {
         struct #ty_name {
