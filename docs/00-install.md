@@ -1,4 +1,4 @@
-# cli-rs を使い始める
+# cli-rs のインストール方法
 
 まだ初回リリースをしていないため、git リモートリポジトリを参照する方法でのみインストールできます。
 
@@ -9,5 +9,3 @@
 git = "https://github.com/0918nobita/cli-rs"
 package = "cli-rs"
 ```
-
-WIP
