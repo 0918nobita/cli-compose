@@ -1,7 +1,8 @@
 [workspace]
 members = [
     "cli-compose-macro",
-    "playground",
+    "playground/binary",
+    "playground/opts",
 ]
 
 [package]

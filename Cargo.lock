@@ -179,6 +179,15 @@ name = "playground"
 version = "0.1.0"
 dependencies = [
  "cli-compose",
+ "playground-opts",
+ "quote",
+]
+
+[[package]]
+name = "playground-opts"
+version = "0.1.0"
+dependencies = [
+ "cli-compose",
 ]
 
 [[package]]
