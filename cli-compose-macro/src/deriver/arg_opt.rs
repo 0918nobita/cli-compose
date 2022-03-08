@@ -25,6 +25,9 @@ struct ArgOptInput {
 
     #[darling(default)]
     short: Option<char>,
+
+    #[darling(default)]
+    use_default: bool,
 }
 
 pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
