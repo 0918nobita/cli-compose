@@ -26,6 +26,7 @@ struct ArgOptInput {
     #[darling(default)]
     short: Option<char>,
 
+    #[allow(dead_code)]
     #[darling(default)]
     use_default: bool,
 }
