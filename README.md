@@ -40,10 +40,12 @@ opts = { path = "./opts" }
 [dependencies.cli-compose]
 git = "https://github.com/0918nobita/cli-compose"
 package = "cli-compose"
+features = [ "runtime" ]
 
 [build-dependencies.cli-compose]
 git = "https://github.com/0918nobita/cli-compose"
 package = "cli-compose"
+features = [ "codegen" ]
 ```
 
 ### `opts/Cargo.toml`
@@ -56,6 +58,7 @@ edition = "2021"
 [dependencies.cli-compose]
 git = "https://github.com/0918nobita/cli-compose"
 package = "cli-compose"
+features = [ "schema" ]
 ```
 
 ### `opts/src/lib.rs`
