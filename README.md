@@ -6,43 +6,85 @@
 
 まだ初期段階なので、未実装あるいは動作が不安定な部分が含まれていることをご了承ください。
 
-## 設計
+## 開発目標
 
-### 第1案：パーサ実装のみを生やす
+以下のように動作することを目指しています。
 
-コマンドライン引数に関する型定義はユーザーが通常の構文で記述する
+### ディレクトリ構造
 
-「``parser!`` マクロが展開時に型定義の属性を取得して、それに応じてコード生成すること」ができるならこのAPIが望ましいが、Rust の通常の言語機能では実現しそうにない
+```text
+project
+├ opts
+│ ├ src
+│ │ └ lib.rs
+│ └ Cargo.toml
+├ src
+│ └ main.rs
+├ build.rs
+└ Cargo.toml
+```
 
-「derive マクロ側で一部の属性を外部ファイルに書き出して、 ``parser!`` マクロでそれを読み込む」という方法でなら実現するかもしれない
+### `Cargo.toml`
 
-<details>
-<summary>コード例</summary>
+```toml
+[workspace]
+members = [ "opts" ]
+
+[package]
+name = "cli-example"
+edition = "2021"
+
+[dependencies]
+opts = { path = "./opts" }
+
+[dependencies.cli-compose]
+git = "https://github.com/0918nobita/cli-compose"
+package = "cli-compose"
+
+[build-dependencies.cli-compose]
+git = "https://github.com/0918nobita/cli-compose"
+package = "cli-compose"
+```
+
+### `opts/Cargo.toml`
+
+```toml
+[package]
+name = "opts"
+edition = "2021"
+
+[dependencies.cli-compose]
+git = "https://github.com/0918nobita/cli-compose"
+package = "cli-compose"
+```
+
+### `opts/src/lib.rs`
 
 ```rust
-use cli_compose::{ArgOpt, FromKebabStr, Group, Opt, PosArg};
+use cli_compose::schema::{ArgOpt, FromKebabStr, GroupJustOne, Opt, PosArg};
 
 // ドキュメンテーションコメントはヘルプメッセージとして扱われます
 
 /// ソースファイルのパス
 #[derive(Debug, PosArg)]
-struct Input(String);
+pub struct Input(String);
 
 /// ソースコードを標準入力から読み込む
 #[derive(Debug, Opt)]
 #[opt(long = "stdin")] // オプション名の上書き
-struct StdinOpt;
+pub struct StdinOpt;
 
-#[derive(Debug, Group)]
-enum InputGroup {
-    File(Input),
-    Stdin(StdinOpt),
+/// 入力関連の設定
+#[derive(GroupJustOne)]
+pub enum InputGroup {
+    Input(Input),
+    StdinOpt(StdinOpt),
 }
 
 /// ソースファイルの形式
 #[derive(Debug, ArgOpt, FromKebabStr)]
 #[arg_opt(use_default)]
-enum InputFormat {
+pub enum InputFormat {
     Json,
     Yaml,
 }
@@ -56,89 +98,72 @@ impl Default for InputFormat {
 /// 出力するファイルのパス
 #[derive(Debug, ArgOpt)]
 #[arg_opt(short = 'o')] // 短縮名の指定
-struct Output(String);
+pub struct Output(String);
 
 /// 標準出力に出力する
 #[derive(Debug, Opt)]
 #[opt(long = "stdout")]
-struct StdoutOpt;
+pub struct StdoutOpt;
 
-#[derive(Debug, Group)]
-#[group(count = one, explicit = true)]
-enum OutputGroup {
-    File(Output),
-    Stdout(StdoutOpt),
+/// 出力関連の設定
+#[derive(GroupJustOne)]
+pub enum OutputGroup {
+    Output(Output),
+    StdoutOpt(StdoutOpt),
 }
 
 #[derive(Opt)]
-struct Verbose;
-
-cli_compose::parser!(
-    Cli,
-
-    group InputGroup: input
-
-    group OutputGroup: output
-
-    arg_opt InputFormat: input_format
-
-    opt Verbose: verbose
-);
-
-pub fn main() {
-    let cli = Cli::parse(std::env::args());
-
-    println!("Input: {:?}", cli.input);
-    println!("InputFormat: {:?}", cli.input_format);
-    println!("Output: {:?}", cli.output);
-    println!("Verbose: {:?}", cli.verbose);
-}
+pub struct Verbose;
 ```
-</details>
 
-### 第2案：DSL で型定義・パーサ実装を生やす
-
-<details>
-<summary>コード例</summary>
+### `build.rs`
 
 ```rust
-use cli_compose::FromKebabStr;
+use cli_compose::codegen::define_cli;
 
-/// ソースファイルの形式
-#[derive(Debug, FromKebabStr)]
-enum InputFormat {
-    Json,
-    Yaml,
-}
-
-impl Default for InputFormat {
-    fn default() -> Self {
-        InputFormat::Json
-    }
-}
-
-cli_compose::parser!(
+define_cli! {
     Cli,
 
-    def Input = pos_arg String [ desc = "入力ファイルのパス" ];
+    version = from_crate,
 
-    def StdinOpt = opt [ long = "stdin", desc = "標準入力から読み込む" ];
+    description = from_crate,
 
-    -- input = group { Input, StdinOpt } [ explicit = true ];
+    members = {
+        input = opts::InputGroup,
 
-    -- input_format =
-        arg_opt
-            InputFormat
-            [ use_default = true, desc = "入力ファイルの形式" ];
+        // input_format = opts::InputFormat は↓のように略記できる
+        opts::InputFormat,
 
-    def Output = arg_opt String [ short = 'o', desc = "出力ファイルのパス" ];
+        output = opts::OutputGroup,
 
-    def StdoutOpt = opt [ long = "stdout", desc = "標準出力に出力する" ];
+        opts::Verbose,
+    },
+}
 
-    -- output = group { Output, StdoutOpt } [ explicit = true ];
+/*
+// define_cli! マクロが $OUT_DIR/cli_compose/cli.rs を生成する
+struct Cli {
+    input: opts::InputGroup,
+    input_format: opts::InputFormat,
+    output: opts::OutputGroup,
+    verbose: Option<opts::Verbose>,
+}
 
-    -- verbose = opt [ desc = "詳細を標準エラーに出力する" ];
-);
+impl Cli {
+    fn parse(args: impl Iterator<Item = String>) -> Self {
+        ...
+    }
+}
+*/
+```
+
+### `src/main.rs`
+
+```rust
+use cli_compose::runtime::use_cli;
+
+// $OUT_DIR/cli_compose/cli.rs を include する
+use_cli!(Cli);
 
 pub fn main() {
     let cli = Cli::parse(std::env::args());
@@ -149,11 +174,10 @@ pub fn main() {
     println!("Verbose: {:?}", cli.verbose);
 }
 ```
-</details>
 
-### 各コード例の実行時の挙動
+### 実行時の挙動
 
-`$ cargo run -- --verbose --stdin --stdout` :
+`$ cargo run -- --verbose --stdin --stdout`：
 
 ```text
 Input: Stdin(StdinOpt)
@@ -162,7 +186,7 @@ Output: Stdout(StdoutOpt)
 Verbose: Some(Verbose)
 ```
 
-`$ cargo run -- --input-format yaml -o output.txt input.yaml` :
+`$ cargo run -- --input-format yaml -o output.txt input.yaml`：
 
 ```text
 Input: File("input.txt")
