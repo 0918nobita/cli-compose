@@ -124,23 +124,25 @@ pub struct Verbose;
 ```rust
 use cli_compose::codegen::define_cli;
 
-define_cli! {
-    Cli,
+fn main() {
+    define_cli! {
+        Cli,
 
-    version = from_crate,
+        version = from_crate,
 
-    description = from_crate,
+        description = from_crate,
 
-    members = {
-        input = opts::InputGroup,
+        members = {
+            input = opts::InputGroup,
 
-        // input_format = opts::InputFormat は↓のように略記できる
-        opts::InputFormat,
+            // input_format = opts::InputFormat は↓のように略記できる
+            opts::InputFormat,
 
-        output = opts::OutputGroup,
+            output = opts::OutputGroup,
 
-        opts::Verbose,
-    },
+            opts::Verbose,
+        },
+    }
 }
 
 /*
