@@ -6,9 +6,9 @@ license = "MIT"
 edition = "2021"
 
 [dependencies]
-playground-opts = { path = "../opts" }
+playground-opts = { path = "./opts" }
 
 [build-dependencies]
-cli-compose = { path = "../../" }
-playground-opts = { path = "../opts" }
+cli-compose = { path = "../" }
+playground-opts = { path = "./opts" }
 quote = "1.0.15"
