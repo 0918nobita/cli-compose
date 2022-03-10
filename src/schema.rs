@@ -18,6 +18,8 @@ pub trait AsPosArg: Sized {
     fn name() -> String;
 
     fn description() -> String;
+
+    fn parse(s: &str) -> Option<Self>;
 }
 
 pub trait AsArgOpt: Sized {

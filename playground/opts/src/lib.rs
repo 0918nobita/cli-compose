@@ -1,7 +1,7 @@
-use cli_compose::schema::{ArgOpt, FromKebabStr, Opt};
+use cli_compose::schema::{ArgOpt, FromKebabStr, Opt, PosArg};
 
 /// 入力ファイルのパス
-#[derive(Debug, ArgOpt)]
+#[derive(Debug, PosArg)]
 pub struct Input(String);
 
 /// 標準入力から読み取る
