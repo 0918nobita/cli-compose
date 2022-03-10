@@ -15,6 +15,10 @@ struct PosArgInput {
 
     #[darling(default)]
     name: Option<String>,
+
+    #[allow(dead_code)]
+    #[darling(default)]
+    use_default: bool,
 }
 
 pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
