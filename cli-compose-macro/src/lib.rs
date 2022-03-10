@@ -36,10 +36,14 @@ pub fn derive_opt(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_opt, input)
 }
 
-/// グループ
-#[proc_macro_derive(Group)]
-pub fn derive_group(input: TokenStream) -> TokenStream {
-    wrap_derive_fn!(deriver::derive_group, input)
+#[proc_macro_derive(SingleSelect)]
+pub fn derive_single_select(input: TokenStream) -> TokenStream {
+    wrap_derive_fn!(deriver::derive_single_select, input)
+}
+
+#[proc_macro_derive(MultiSelect)]
+pub fn derive_multi_select(input: TokenStream) -> TokenStream {
+    wrap_derive_fn!(deriver::derive_multi_select, input)
 }
 
 #[proc_macro]

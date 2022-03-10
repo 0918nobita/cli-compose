@@ -1,6 +1,6 @@
 use derive_more::Display;
 
-pub use cli_compose_macro::{ArgOpt, FromKebabStr, Group, Opt, PosArg};
+pub use cli_compose_macro::{ArgOpt, FromKebabStr, MultiSelect, Opt, PosArg, SingleSelect};
 
 #[derive(Display)]
 pub enum Flag {

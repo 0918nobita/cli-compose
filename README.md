@@ -64,7 +64,7 @@ features = [ "schema" ]
 ### `opts/src/lib.rs`
 
 ```rust
-use cli_compose::schema::{ArgOpt, FromKebabStr, GroupJustOne, Opt, PosArg};
+use cli_compose::schema::{ArgOpt, FromKebabStr, SingleSelect, Opt, PosArg};
 
 // ドキュメンテーションコメントはヘルプメッセージとして扱われます
 
@@ -78,7 +78,7 @@ pub struct Input(String);
 pub struct StdinOpt;
 
 /// 入力関連の設定
-#[derive(GroupJustOne)]
+#[derive(SingleSelect)]
 pub enum InputGroup {
     Input(Input),
     StdinOpt(StdinOpt),
@@ -109,7 +109,7 @@ pub struct Output(String);
 pub struct StdoutOpt;
 
 /// 出力関連の設定
-#[derive(GroupJustOne)]
+#[derive(SingleSelect)]
 pub enum OutputGroup {
     Output(Output),
     StdoutOpt(StdoutOpt),
