@@ -1,4 +1,4 @@
-use cli_compose::{ArgOpt, FromKebabStr, Opt};
+use cli_compose::schema::{ArgOpt, FromKebabStr, Opt};
 
 /// 入力ファイルのパス
 #[derive(Debug, ArgOpt)]

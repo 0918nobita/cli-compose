@@ -6,4 +6,4 @@ license = "MIT"
 edition = "2021"
 
 [dependencies]
-cli-compose = { path = "../../" }
+cli-compose = { path = "../../", features = [ "schema" ] }

@@ -33,7 +33,7 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
         .unwrap_or_else(|| struct_name.to_string().to_case(Case::Kebab));
 
     Ok(quote::quote! {
-        impl cli_compose::AsPosArg for #struct_name {
+        impl cli_compose::codegen::AsPosArg for #struct_name {
             fn name() -> String {
                 #struct_name_kebab_case.to_owned()
             }

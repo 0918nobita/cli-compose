@@ -49,16 +49,16 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
 
             let flag = match input.short {
                 Some(short) => {
-                    quote! { cli_compose::Flag::BothLongAndShort(#long.to_owned(), #short) }
+                    quote! { cli_compose::schema::Flag::BothLongAndShort(#long.to_owned(), #short) }
                 }
-                None => quote! { cli_compose::Flag::LongOnly(#long.to_owned()) },
+                None => quote! { cli_compose::schema::Flag::LongOnly(#long.to_owned()) },
             };
 
             let doc = extract_doc(&input.attrs);
 
             Ok(quote! {
-                impl cli_compose::AsArgOpt for #enum_name {
-                    fn flag() -> cli_compose::Flag {
+                impl cli_compose::schema::AsArgOpt for #enum_name {
+                    fn flag() -> cli_compose::schema::Flag {
                         #flag
                     }
 
@@ -98,9 +98,9 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
 
             let flag = match input.short {
                 Some(short) => {
-                    quote! { cli_compose::Flag::BothLongAndShort(#long.to_owned(), #short) }
+                    quote! { cli_compose::schema::Flag::BothLongAndShort(#long.to_owned(), #short) }
                 }
-                None => quote! { cli_compose::Flag::LongOnly(#long.to_owned()) },
+                None => quote! { cli_compose::schema::Flag::LongOnly(#long.to_owned()) },
             };
 
             let doc = extract_doc(&input.attrs);
@@ -108,8 +108,8 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
             let ty = field.ty.clone();
 
             Ok(quote! {
-                impl cli_compose::AsArgOpt for #struct_name {
-                    fn flag() -> cli_compose::Flag {
+                impl cli_compose::schema::AsArgOpt for #struct_name {
+                    fn flag() -> cli_compose::schema::Flag {
                         #flag
                     }
 
