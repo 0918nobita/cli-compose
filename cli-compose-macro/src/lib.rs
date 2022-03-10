@@ -1,5 +1,7 @@
+mod define_cli;
 mod deriver;
 mod doc;
+mod use_cli;
 
 use proc_macro::TokenStream;
 
@@ -47,6 +49,11 @@ pub fn derive_multi_select(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
-pub fn define_cli(_input: TokenStream) -> TokenStream {
-    TokenStream::new()
+pub fn define_cli(input: TokenStream) -> TokenStream {
+    wrap_derive_fn!(define_cli::define_cli, input)
+}
+
+#[proc_macro]
+pub fn use_cli(input: TokenStream) -> TokenStream {
+    wrap_derive_fn!(use_cli::use_cli, input)
 }
