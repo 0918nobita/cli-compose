@@ -1,3 +1,5 @@
+pub use cli_compose_macro::use_cli;
+
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Long(String),

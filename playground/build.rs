@@ -1,7 +1,13 @@
+use std::fs;
+
 fn main() {
     let out_dir = std::env::var("OUT_DIR").unwrap();
 
-    let dest = std::path::Path::new(&out_dir).join("cli_compose.rs");
+    let mut dest = std::path::PathBuf::from(&out_dir).join("cli_compose");
+
+    fs::create_dir_all(&dest).unwrap();
+
+    dest.push("cli.rs");
 
     let contents = quote::quote! {
         #[allow(dead_code)]
@@ -23,7 +29,7 @@ fn main() {
     }
     .to_string();
 
-    std::fs::write(&dest, contents).unwrap();
+    fs::write(&dest, contents).unwrap();
 
     println!("cargo:rerun-if-changed=build.rs");
 }

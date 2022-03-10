@@ -1,4 +1,4 @@
-include!(concat!(env!("OUT_DIR"), "/cli_compose.rs"));
+cli_compose::runtime::use_cli!(Cli);
 
 fn main() {
     Cli::parse(std::env::args());
