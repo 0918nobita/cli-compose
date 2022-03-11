@@ -2,13 +2,11 @@
 
 > Composable, strict CLI parser with compile-time analysis for Rust
 
-まだ初期段階なので、未実装あるいは動作が不安定な部分が含まれていることをご了承ください。
+Please note that this is still at an early stage of development. Hence this may contain bugs, unimplemented features, or unstable features.
 
-## 開発目標
+## Implementation goals
 
-以下のように動作することを目指しています。
-
-### ディレクトリ構造
+### Directory structure
 
 ```text
 project
@@ -64,25 +62,25 @@ features = [ "schema" ]
 ```rust
 use cli_compose::schema::{ArgOpt, FromKebabStr, SingleSelect, Opt, PosArg};
 
-// ドキュメンテーションコメントはヘルプメッセージとして扱われます
+// All derivers treat doc comments as help messages.
 
-/// ソースファイルのパス
+/// Source file path
 #[derive(Debug, PosArg)]
 pub struct Input(String);
 
-/// ソースコードを標準入力から読み込む
+/// Reads source code from stdin
 #[derive(Debug, Opt)]
-#[opt(long = "stdin")] // オプション名の上書き
+#[opt(long = "stdin")] // overrides its long name
 pub struct StdinOpt;
 
-/// 入力関連の設定
+/// Settings related to input
 #[derive(SingleSelect)]
 pub enum InputGroup {
     Input(Input),
     StdinOpt(StdinOpt),
 }
 
-/// ソースファイルの形式
+/// Source file format
 #[derive(Debug, ArgOpt, FromKebabStr)]
 #[arg_opt(use_default)]
 pub enum InputFormat {
@@ -96,17 +94,17 @@ impl Default for InputFormat {
     }
 }
 
-/// 出力するファイルのパス
+/// Output file path
 #[derive(Debug, ArgOpt)]
-#[arg_opt(short = 'o')] // 短縮名の指定
+#[arg_opt(short = 'o')] // configures its short name
 pub struct Output(String);
 
-/// 標準出力に出力する
+/// Outputs to stdout
 #[derive(Debug, Opt)]
 #[opt(long = "stdout")]
 pub struct StdoutOpt;
 
-/// 出力関連の設定
+/// Settings related to output
 #[derive(SingleSelect)]
 pub enum OutputGroup {
     Output(Output),
@@ -123,17 +121,12 @@ pub struct Verbose;
 use cli_compose::codegen::define_cli;
 
 fn main() {
+    // generates `$OUT_DIR/cli_compose/cli.rs`, which defines `Cli` struct
     define_cli! {
-        Cli,
-
-        version = from_crate,
-
-        description = from_crate,
-
-        members = {
+        Cli [version = from_crate, description = from_crate] {
             input = opts::InputGroup,
 
-            // input_format = opts::InputFormat は↓のように略記できる
+            // equivalent to `input_format = opts::InputFormat`
             opts::InputFormat,
 
             output = opts::OutputGroup,
@@ -142,31 +135,13 @@ fn main() {
         },
     }
 }
-
-/*
-// define_cli! マクロが $OUT_DIR/cli_compose/cli.rs を生成する
-struct Cli {
-    input: opts::InputGroup,
-    input_format: opts::InputFormat,
-    output: opts::OutputGroup,
-    verbose: Option<opts::Verbose>,
-}
-
-impl Cli {
-    fn parse(args: impl Iterator<Item = String>) -> Self {
-        ...
-    }
-}
-*/
 ```
 
 ### `src/main.rs`
 
 ```rust
-use cli_compose::runtime::use_cli;
-
-// $OUT_DIR/cli_compose/cli.rs を include する
-use_cli!(Cli);
+// includes `$OUT_DIR/cli_compose/cli.rs`
+cli_compose::runtime::use_cli!(Cli);
 
 pub fn main() {
     let cli = Cli::parse(std::env::args());
@@ -178,7 +153,7 @@ pub fn main() {
 }
 ```
 
-### 実行時の挙動
+### Results
 
 `$ cargo run -- --verbose --stdin --stdout`：
 
@@ -198,7 +173,7 @@ Output: File("output.txt")
 Verbose: None
 ```
 
-## サンプルの実行方法
+## Example program to test features already implemented
 
 ```bash
 cargo run -p playground
