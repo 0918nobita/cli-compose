@@ -20,19 +20,25 @@ pub fn derive_from_kebab_str(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_from_kebab_str, input)
 }
 
-/// 位置指定引数
+/// Positional argument
+///
+/// Avaliable attributes: `name`, `use_default`
 #[proc_macro_derive(PosArg, attributes(pos_arg))]
 pub fn derive_pos_arg(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_pos_arg, input)
 }
 
-/// 引数付きオプション
+/// Option with argument
+///
+/// Avaliable attributes: `short`, `short_only`, `long`, `use_default`
 #[proc_macro_derive(ArgOpt, attributes(arg_opt))]
 pub fn derive_arg_opt(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_arg_opt, input)
 }
 
-/// 引数なしオプション
+/// Option without argument
+///
+/// Available attributes: `short`, `short_only`, `long`, `use_default`
 #[proc_macro_derive(Opt, attributes(opt))]
 pub fn derive_opt(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_opt, input)

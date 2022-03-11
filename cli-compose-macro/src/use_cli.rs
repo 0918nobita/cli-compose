@@ -5,7 +5,7 @@ use std::path::MAIN_SEPARATOR;
 pub fn use_cli(input: TokenStream) -> syn::Result<TokenStream> {
     let path = syn::parse2::<syn::Path>(input)?;
 
-    let ident = &path.segments.iter().last().unwrap().ident;
+    let ident = &path.segments.iter().last().expect("Failed to extract the last path segment").ident;
 
     let source_path = format!(
         "{sep}cli_compose{sep}{filename}.rs",

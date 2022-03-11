@@ -11,6 +11,7 @@ use quote::{quote, ToTokens};
 use self::result::{ArgOptErr, ArgOptErrKind};
 use crate::doc::extract_doc;
 
+// TODO: implement a handler for `short_only` field
 #[derive(FromDeriveInput)]
 #[darling(attributes(arg_opt), forward_attrs(doc))]
 struct ArgOptInput {
