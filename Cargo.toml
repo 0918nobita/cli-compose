@@ -8,7 +8,7 @@ members = [
 [package]
 name = "cli-compose"
 version = "0.1.0"
-description = "Type-safe command line parser"
+description = "Composable, strict CLI parser with compile-time analysis for Rust"
 authors = ["Kodai Matsumoto <nobita.0918@gmail.com>"]
 repository = "https://github.com/0918nobita/cli-compose"
 categories = ["command-line-interface"]

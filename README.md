@@ -1,8 +1,6 @@
 # cli-compose
 
-> Next-generation, type-safe CLI parser for Rust
-
-[clap](https://crates.io/crates/clap) クレートの代替となることを目指して開発を進めています。
+> Composable, strict CLI parser with compile-time analysis for Rust
 
 まだ初期段階なので、未実装あるいは動作が不安定な部分が含まれていることをご了承ください。
 
