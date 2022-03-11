@@ -3,22 +3,28 @@ use quote::quote;
 use syn::{parse, Ident};
 
 struct CliDef {
-    ident: Ident,
+    cli_ty: Ident,
+    res_ty: Ident,
 }
 
 impl parse::Parse for CliDef {
     fn parse(input: parse::ParseStream) -> syn::Result<Self> {
-        let ident = input.parse()?;
-        Ok(Self { ident })
+        let cli_ty = input.parse()?;
+
+        input.parse::<syn::Token![,]>()?;
+
+        let res_ty = input.parse()?;
+
+        Ok(Self { cli_ty, res_ty })
     }
 }
 
 pub fn define_cli(input: TokenStream) -> syn::Result<TokenStream> {
-    let CliDef { ident } = syn::parse2(input)?;
+    let CliDef { cli_ty, res_ty } = syn::parse2(input)?;
 
-    let contents = quote::quote! {
+    let contents = quote! {
         #[allow(dead_code)]
-        struct #ident {
+        struct #res_ty {
             input: String,
             output: Option<String>,
             stdin: Option<playground_opts::StdinOpt>,
@@ -27,10 +33,11 @@ pub fn define_cli(input: TokenStream) -> syn::Result<TokenStream> {
         }
 
         #[allow(dead_code)]
-        impl #ident {
-            pub fn parse(args: impl Iterator<Item = String>) {
+        impl cli_compose::runtime::AsCli<#res_ty> for #cli_ty {
+            fn parse(args: impl Iterator<Item = String>) -> #res_ty {
                 let tokens = cli_compose::runtime::parse_into_tokens(args).collect::<Vec<_>>();
                 println!("{:?}", tokens);
+                todo!()
             }
         }
     }

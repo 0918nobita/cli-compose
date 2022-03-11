@@ -27,7 +27,7 @@ project
 members = [ "opts" ]
 
 [package]
-name = "cli-example"
+name = "example-cli"
 edition = "2021"
 
 [dependencies]
@@ -113,6 +113,14 @@ pub enum OutputGroup {
 
 #[derive(Opt)]
 pub struct Verbose;
+
+#[derive(Cli)]
+#[cli(
+    name = "example",
+    version = from_crate,
+    desc = from_crate
+)]
+pub struct ExampleCli;
 ```
 
 ### `build.rs`
@@ -121,9 +129,11 @@ pub struct Verbose;
 use cli_compose::codegen::define_cli;
 
 fn main() {
-    // generates `$OUT_DIR/cli_compose/cli.rs`, which defines `Cli` struct
+    // generates `$OUT_DIR/cli_compose/example_cli.rs`,
+    // which defines `ExampleCliResult` struct
+    // and implements `cli_compose::runtime::AsCli<ExampleCliResult>` trait for `ExampleCli` struct
     define_cli! {
-        Cli [version = from_crate, description = from_crate] {
+        ExampleCli -> ExampleCliResult {
             input = opts::InputGroup,
 
             // equivalent to `input_format = opts::InputFormat`
@@ -140,16 +150,19 @@ fn main() {
 ### `src/main.rs`
 
 ```rust
-// includes `$OUT_DIR/cli_compose/cli.rs`
-cli_compose::runtime::use_cli!(Cli);
+use cli_compose::runtime::{use_cli, AsCli};
+
+// includes `$OUT_DIR/cli_compose/example_cli.rs`
+// and imports `ExampleCli` struct
+cli_compose::runtime::use_cli! { example_cli::ExampleCli }
 
 pub fn main() {
-    let cli = Cli::parse(std::env::args());
+    let res = Cli::parse(std::env::args()); // res: ExampleCliResult
 
-    println!("Input: {:?}", cli.input);
-    println!("InputFormat: {:?}", cli.input_format);
-    println!("Output: {:?}", cli.output);
-    println!("Verbose: {:?}", cli.verbose);
+    println!("Input: {:?}", res.input);
+    println!("InputFormat: {:?}", res.input_format);
+    println!("Output: {:?}", res.output);
+    println!("Verbose: {:?}", res.verbose);
 }
 ```
 

@@ -1,5 +1,9 @@
 pub use cli_compose_macro::use_cli;
 
+pub trait AsCli<R> {
+    fn parse(args: impl Iterator<Item = String>) -> R;
+}
+
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Long(String),

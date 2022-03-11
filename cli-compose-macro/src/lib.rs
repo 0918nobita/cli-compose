@@ -48,6 +48,11 @@ pub fn derive_multi_select(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_multi_select, input)
 }
 
+#[proc_macro_derive(Cli, attributes(cli))]
+pub fn derive_cli(input: TokenStream) -> TokenStream {
+    wrap_derive_fn!(deriver::derive_cli, input)
+}
+
 #[proc_macro]
 pub fn define_cli(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(define_cli::define_cli, input)

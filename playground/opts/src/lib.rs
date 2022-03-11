@@ -1,4 +1,4 @@
-use cli_compose::schema::{ArgOpt, FromKebabStr, Opt, PosArg};
+use cli_compose::schema::{ArgOpt, Cli, FromKebabStr, Opt, PosArg};
 
 /// 入力ファイルのパス
 #[derive(Debug, PosArg)]
@@ -31,3 +31,8 @@ pub struct StdoutOpt;
 #[derive(Debug, Opt)]
 #[opt(short = 'V')]
 pub struct Verbose;
+
+/// CLI ツールの説明文
+#[derive(Cli)]
+#[cli(name = "example", version = from_crate)]
+pub struct Cli;
