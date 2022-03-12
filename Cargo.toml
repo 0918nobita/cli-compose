@@ -39,6 +39,9 @@ schema = []
 cli-compose-macro = { path = "./cli-compose-macro" }
 derive_more = "0.99.17"
 
+[dev-dependencies]
+insta = "1.13.0"
+
 [profile.release]
 lto = true
 codegen-units = 1

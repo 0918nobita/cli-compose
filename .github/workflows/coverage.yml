@@ -1,0 +1,22 @@
+name: Coverage
+
+on: push
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+      - uses: actions-rs/install@v0.1.2
+        with:
+          crate: cargo-tarpaulin
+      - uses: actions-rs/cargo@v1
+        with:
+          command: tarpaulin
+          args: --verbose --all-features --workspace --exclude playground,playground-opts --out Xml
+      - uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: true

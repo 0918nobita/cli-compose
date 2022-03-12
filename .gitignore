@@ -1,1 +1,3 @@
 /target
+# Coverage Report
+*.xml
