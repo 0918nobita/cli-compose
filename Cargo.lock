@@ -15,6 +15,7 @@ dependencies = [
  "cli-compose-macro",
  "derive_more",
  "insta",
+ "str-macro",
 ]
 
 [[package]]
@@ -277,6 +278,12 @@ name = "similar"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2e24979f63a11545f5f2c60141afe249d4f19f84581ea2138065e400941d83d3"
+
+[[package]]
+name = "str-macro"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b7514866270741c7b03dd36e2c68f71cf064b230e8217c81bbd4d619d564864"
 
 [[package]]
 name = "strsim"

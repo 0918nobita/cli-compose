@@ -28,15 +28,12 @@ where
 
 #[cfg(test)]
 mod tests {
+    use str_macro::str;
+
     #[test]
     fn test_parse_into_tokens() {
         insta::assert_debug_snapshot!(super::parse_into_tokens(
-            vec![
-                "example".to_owned(),
-                "--input-format".to_owned(),
-                "json".to_owned()
-            ]
-            .into_iter()
+            vec![str!("example"), str!("--input-format"), str!("json")].into_iter()
         )
         .collect::<Vec<_>>());
     }
