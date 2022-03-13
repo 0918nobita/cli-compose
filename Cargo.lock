@@ -181,7 +181,6 @@ version = "0.1.0"
 dependencies = [
  "cli-compose",
  "playground-opts",
- "quote",
 ]
 
 [[package]]

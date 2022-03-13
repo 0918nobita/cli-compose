@@ -12,4 +12,3 @@ playground-opts = { path = "./opts" }
 [build-dependencies]
 cli-compose = { path = "../", features = [ "codegen" ] }
 playground-opts = { path = "./opts" }
-quote = "1.0.15"
