@@ -1,0 +1,10 @@
+---
+source: cli-compose-macro/src/deriver/arg_opt.rs
+assertion_line: 167
+expression: "test_derive_arg_opt(quote! { struct Foo(String, i32) ; })"
+---
+Err(
+    Error(
+        "#[derive(ArgOpt)] can only be applied to structs with single unnamed field or enums",
+    ),
+)

@@ -26,10 +26,10 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
 
     let attr = ArgOpt::try_from_attributes(&input.attrs)?;
 
+    let ty_name = &input.ident;
+
     match &input.data {
         syn::Data::Enum(_) => {
-            let enum_name = &input.ident;
-
             let long = attr
                 .as_ref()
                 .and_then(|arg_opt| arg_opt.long.clone())
@@ -48,7 +48,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
             let doc = extract_doc(&input.attrs);
 
             Ok(quote! {
-                impl cli_compose::schema::AsArgOpt for #enum_name {
+                impl cli_compose::schema::AsArgOpt for #ty_name {
                     fn flag() -> cli_compose::schema::Flag {
                         #flag
                     }
@@ -58,7 +58,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
                     }
 
                     fn parse(s: &str) -> Option<Self> {
-                        <#enum_name as std::str::FromStr>::from_str(s).ok()
+                        <#ty_name as std::str::FromStr>::from_str(s).ok()
                     }
                 }
             })
@@ -74,12 +74,11 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
                 _ => return Err(syn::Error::new_spanned(struct_token, UNSUPPORTED_SHAPE)),
             };
 
-            let struct_name = &input.ident;
             let long = attr
                 .as_ref()
                 .and_then(|arg_opt| arg_opt.long.clone())
                 .map_or_else(
-                    || struct_name.to_string().to_case(Case::Kebab),
+                    || ty_name.to_string().to_case(Case::Kebab),
                     |lit_str| lit_str.value(),
                 );
 
@@ -95,7 +94,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
             let ty = field.ty.clone();
 
             Ok(quote! {
-                impl cli_compose::schema::AsArgOpt for #struct_name {
+                impl cli_compose::schema::AsArgOpt for #ty_name {
                     fn flag() -> cli_compose::schema::Flag {
                         #flag
                     }
@@ -106,7 +105,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
 
                     fn parse(s: &str) -> Option<Self> {
                         let val = <#ty as std::str::FromStr>::from_str(s).ok()?;
-                        Some(#struct_name(val))
+                        Some(#ty_name(val))
                     }
                 }
             })
@@ -116,5 +115,57 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
             data_union.union_token,
             UNSUPPORTED_SHAPE,
         )),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Write;
+    use std::process;
+
+    use quote::quote;
+
+    fn test_derive_arg_opt(input: proc_macro2::TokenStream) -> anyhow::Result<String> {
+        let tokens = super::derive_arg_opt(input)?;
+
+        let mut rustfmt = process::Command::new("rustfmt")
+            .stdin(process::Stdio::piped())
+            .stdout(process::Stdio::piped())
+            .spawn()?;
+
+        write!(rustfmt.stdin.take().unwrap(), "{}", tokens)?;
+
+        let output = rustfmt.wait_with_output()?;
+
+        let stdout = String::from_utf8(output.stdout)?;
+
+        Ok(stdout)
+    }
+
+    #[test]
+    fn empty() {
+        insta::assert_debug_snapshot!(test_derive_arg_opt(quote! {}));
+    }
+
+    #[test]
+    fn struct_without_field() {
+        insta::assert_debug_snapshot!(test_derive_arg_opt(quote! {
+            struct Foo;
+        }));
+    }
+
+    #[test]
+    fn struct_with_single_field() {
+        insta::assert_display_snapshot!(test_derive_arg_opt(quote! {
+            struct Foo(String);
+        })
+        .unwrap());
+    }
+
+    #[test]
+    fn struct_with_multiple_fields() {
+        insta::assert_debug_snapshot!(test_derive_arg_opt(quote! {
+            struct Foo(String, i32);
+        }));
     }
 }

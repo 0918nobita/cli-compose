@@ -1,0 +1,10 @@
+---
+source: cli-compose-macro/src/deriver/arg_opt.rs
+assertion_line: 147
+expression: "test_derive_arg_opt(quote! {})"
+---
+Err(
+    Error(
+        "unexpected end of input, expected one of: `struct`, `enum`, `union`",
+    ),
+)

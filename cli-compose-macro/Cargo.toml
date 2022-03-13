@@ -9,6 +9,7 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
+anyhow = "1.0.56"
 bae = "0.1.7"
 convert_case = "0.5.0"
 derive_more = "0.99.17"
@@ -18,3 +19,6 @@ quote = "1.0.15"
 [dependencies.syn]
 version = "1.0.86"
 features = ["full", "extra-traits"]
+
+[dev-dependencies]
+insta = "1.13.0"
