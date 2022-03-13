@@ -1,0 +1,16 @@
+---
+source: src/runtime.rs
+assertion_line: 46
+expression: "parse_into_tokens(vec![str! (\"example\"), str! (\"-vo\"), str!\n                (\"out.json\")].into_iter()).collect::<Vec<_>>()"
+---
+[
+    Short(
+        'v',
+    ),
+    Short(
+        'o',
+    ),
+    Value(
+        "out.json",
+    ),
+]

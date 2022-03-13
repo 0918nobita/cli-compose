@@ -1,0 +1,13 @@
+---
+source: src/runtime.rs
+assertion_line: 38
+expression: "parse_into_tokens(vec![str! (\"example\"), str! (\"--input-format\"), str!\n                (\"json\")].into_iter()).collect::<Vec<_>>()"
+---
+[
+    Long(
+        "input-format",
+    ),
+    Value(
+        "json",
+    ),
+]

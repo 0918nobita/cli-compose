@@ -28,13 +28,24 @@ where
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_debug_snapshot;
     use str_macro::str;
 
+    use super::parse_into_tokens;
+
     #[test]
-    fn test_parse_into_tokens() {
-        insta::assert_debug_snapshot!(super::parse_into_tokens(
+    fn test_long_flag() {
+        assert_debug_snapshot!(parse_into_tokens(
             vec![str!("example"), str!("--input-format"), str!("json")].into_iter()
         )
         .collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn test_short_flags() {
+        assert_debug_snapshot!(parse_into_tokens(
+            vec![str!("example"), str!("-vo"), str!("out.json")].into_iter()
+        )
+        .collect::<Vec<_>>())
     }
 }
