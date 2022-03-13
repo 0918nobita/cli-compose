@@ -2,7 +2,7 @@ mod cli_def;
 mod cli_defs;
 
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 
 use self::{cli_def::CliDef, cli_defs::CliDefs};
 
@@ -10,7 +10,18 @@ pub fn define_cli(input: TokenStream) -> syn::Result<TokenStream> {
     let defs: CliDefs = syn::parse2(input)?;
 
     let contents = defs.into_iter()
-        .map(|CliDef { cli_ty, res_ty, .. }| {
+        .map(|CliDef { cli_ty, res_ty, members }| {
+            let dump_members = members.iter().map(|member| {
+                let member_name = member.into_token_stream().to_string();
+                quote!{
+                    println!(
+                        "{: >6} │ {}",
+                        format!("{:?}", <#member as cli_compose::schema::AsMember<_>>::kind()),
+                        #member_name,
+                    );
+                }
+            }).collect::<TokenStream>();
+
             quote! {
                 #[allow(dead_code)]
                 struct #res_ty {
@@ -25,7 +36,9 @@ pub fn define_cli(input: TokenStream) -> syn::Result<TokenStream> {
                 impl cli_compose::runtime::AsCli<#res_ty> for #cli_ty {
                     fn parse(args: impl Iterator<Item = String>) -> #res_ty {
                         let tokens = cli_compose::runtime::parse_into_tokens(args).collect::<Vec<_>>();
-                        println!("{:?}", tokens);
+                        println!("tokens: {:?}", tokens);
+                        println!("───────┬───────────────────────────────");
+                        #dump_members
                         todo!()
                     }
                 }
