@@ -16,6 +16,7 @@ macro_rules! wrap_derive_fn {
 
 /// Implements [`std::str::FromStr`] for enum types consisting only of variants without fields
 /// so that they can be parsed from kebab case strings.
+#[cfg(not(tarpaulin_include))]
 #[proc_macro_derive(FromKebabStr)]
 pub fn derive_from_kebab_str(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_from_kebab_str, input)
@@ -24,6 +25,7 @@ pub fn derive_from_kebab_str(input: TokenStream) -> TokenStream {
 /// Positional argument
 ///
 /// Avaliable attributes: `name`, `use_default`
+#[cfg(not(tarpaulin_include))]
 #[proc_macro_derive(PosArg, attributes(pos_arg))]
 pub fn derive_pos_arg(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_pos_arg, input)
@@ -32,6 +34,7 @@ pub fn derive_pos_arg(input: TokenStream) -> TokenStream {
 /// Option with argument
 ///
 /// Avaliable attributes: `short`, `short_only`, `long`, `use_default`
+#[cfg(not(tarpaulin_include))]
 #[proc_macro_derive(ArgOpt, attributes(arg_opt))]
 pub fn derive_arg_opt(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_arg_opt, input)
@@ -40,21 +43,25 @@ pub fn derive_arg_opt(input: TokenStream) -> TokenStream {
 /// Option without argument
 ///
 /// Available attributes: `short`, `short_only`, `long`, `use_default`
+#[cfg(not(tarpaulin_include))]
 #[proc_macro_derive(Opt, attributes(opt))]
 pub fn derive_opt(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_opt, input)
 }
 
+#[cfg(not(tarpaulin_include))]
 #[proc_macro_derive(SingleSelect)]
 pub fn derive_single_select(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_single_select, input)
 }
 
+#[cfg(not(tarpaulin_include))]
 #[proc_macro_derive(MultiSelect)]
 pub fn derive_multi_select(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_multi_select, input)
 }
 
+#[cfg(not(tarpaulin_include))]
 #[proc_macro_derive(Cli, attributes(cli))]
 pub fn derive_cli(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(deriver::derive_cli, input)
@@ -67,6 +74,7 @@ pub fn derive_cli(input: TokenStream) -> TokenStream {
 /// ```text
 /// ( path , "->" , path, "{" , path,* , "}" ),*
 /// ```
+#[cfg(not(tarpaulin_include))]
 #[proc_macro]
 pub fn define_cli(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(define_cli::define_cli, input)
@@ -80,6 +88,7 @@ pub fn define_cli(input: TokenStream) -> TokenStream {
 /// ```text
 /// path
 /// ```
+#[cfg(not(tarpaulin_include))]
 #[proc_macro]
 pub fn use_cli(input: TokenStream) -> TokenStream {
     wrap_derive_fn!(use_cli::use_cli, input)

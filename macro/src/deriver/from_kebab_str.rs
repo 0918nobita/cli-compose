@@ -1,6 +1,7 @@
 use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::Data;
 
 static UNSUPPORTED_SHAPE: &str =
     "`#[derive(FromKebabStr)]` can only be applied to enums whose variants have no field";
@@ -11,12 +12,12 @@ pub fn derive_from_kebab_str(input: TokenStream) -> syn::Result<TokenStream> {
     let ty_name = &input.ident;
 
     let data_enum = match &input.data {
-        syn::Data::Enum(data_enum) => Ok(data_enum),
-        syn::Data::Struct(data_struct) => Err(syn::Error::new_spanned(
+        Data::Enum(data_enum) => Ok(data_enum),
+        Data::Struct(data_struct) => Err(syn::Error::new_spanned(
             data_struct.struct_token,
             UNSUPPORTED_SHAPE,
         )),
-        syn::Data::Union(data_union) => Err(syn::Error::new_spanned(
+        Data::Union(data_union) => Err(syn::Error::new_spanned(
             data_union.union_token,
             UNSUPPORTED_SHAPE,
         )),
