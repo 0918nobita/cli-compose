@@ -1,54 +1,44 @@
-mod result;
-
+use bae::FromAttributes;
 use convert_case::{Case, Casing};
-use darling::{
-    ast::{self, Data},
-    FromDeriveInput,
-};
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 
-use self::result::{ArgOptErr, ArgOptErrKind};
 use crate::doc::extract_doc;
 
-// TODO: implement a handler for `short_only` field
-#[derive(FromDeriveInput)]
-#[darling(attributes(arg_opt), forward_attrs(doc))]
-struct ArgOptInput {
-    ident: syn::Ident,
+static UNSUPPORTED_SHAPE: &str =
+    "#[derive(ArgOpt)] can only be applied to structs with single unnamed field or enums";
 
-    data: Data<syn::Ident, syn::Field>,
+#[derive(FromAttributes)]
+struct ArgOpt {
+    long: Option<syn::LitStr>,
 
-    attrs: Vec<syn::Attribute>,
-
-    #[darling(default)]
-    long: Option<String>,
-
-    #[darling(default)]
-    short: Option<char>,
+    short: Option<syn::LitChar>,
 
     #[allow(dead_code)]
-    #[darling(default)]
-    use_default: bool,
+    short_only: Option<()>,
+
+    #[allow(dead_code)]
+    use_default: Option<()>,
 }
 
 pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
     let input = syn::parse2::<syn::DeriveInput>(input)?;
 
-    let input = match ArgOptInput::from_derive_input(&input) {
-        Ok(input) => input,
-        Err(err) => return Ok(err.write_errors()),
-    };
+    let attr = ArgOpt::try_from_attributes(&input.attrs)?;
 
     match &input.data {
-        Data::Enum(_) => {
+        syn::Data::Enum(_) => {
             let enum_name = &input.ident;
 
-            let long = input
-                .long
-                .unwrap_or_else(|| input.ident.to_string().to_case(Case::Kebab));
+            let long = attr
+                .as_ref()
+                .and_then(|arg_opt| arg_opt.long.clone())
+                .map_or_else(
+                    || input.ident.to_string().to_case(Case::Kebab),
+                    |lit_str| lit_str.value(),
+                );
 
-            let flag = match input.short {
+            let flag = match attr.and_then(|arg_opt| arg_opt.short) {
                 Some(short) => {
                     quote! { cli_compose::schema::Flag::BothLongAndShort(#long.to_owned(), #short) }
                 }
@@ -74,30 +64,26 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
             })
         }
 
-        Data::Struct(
-            fields @ ast::Fields {
-                style: ast::Style::Tuple,
-                fields: fields_vec,
-                ..
-            },
-        ) => {
-            let field = match &fields_vec[..] {
+        syn::Data::Struct(syn::DataStruct {
+            struct_token,
+            fields,
+            ..
+        }) => {
+            let field = match fields.iter().collect::<Vec<_>>()[..] {
                 [field] => field,
-                _ => {
-                    return Err(ArgOptErr::new(
-                        ArgOptErrKind::InvalidTypeDef,
-                        fields.to_token_stream(),
-                    )
-                    .into())
-                }
+                _ => return Err(syn::Error::new_spanned(struct_token, UNSUPPORTED_SHAPE)),
             };
 
             let struct_name = &input.ident;
-            let long = input
-                .long
-                .unwrap_or_else(|| struct_name.to_string().to_case(Case::Kebab));
+            let long = attr
+                .as_ref()
+                .and_then(|arg_opt| arg_opt.long.clone())
+                .map_or_else(
+                    || struct_name.to_string().to_case(Case::Kebab),
+                    |lit_str| lit_str.value(),
+                );
 
-            let flag = match input.short {
+            let flag = match attr.and_then(|arg_opt| arg_opt.short) {
                 Some(short) => {
                     quote! { cli_compose::schema::Flag::BothLongAndShort(#long.to_owned(), #short) }
                 }
@@ -126,8 +112,9 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
             })
         }
 
-        Data::Struct(fields) => {
-            Err(ArgOptErr::new(ArgOptErrKind::InvalidTypeDef, fields.to_token_stream()).into())
-        }
+        syn::Data::Union(data_union) => Err(syn::Error::new_spanned(
+            data_union.union_token,
+            UNSUPPORTED_SHAPE,
+        )),
     }
 }

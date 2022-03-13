@@ -11,7 +11,7 @@ pub struct StdinOpt;
 
 /// 入力ファイルの形式
 #[derive(Debug, ArgOpt, FromKebabStr)]
-#[arg_opt(use_default = true)]
+#[arg_opt(use_default)]
 pub enum InputFormat {
     Json,
     Yaml,

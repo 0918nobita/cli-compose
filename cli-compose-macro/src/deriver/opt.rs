@@ -1,41 +1,33 @@
-mod result;
-
+use bae::FromAttributes;
 use convert_case::{Case, Casing};
-use darling::FromDeriveInput;
 use proc_macro2::TokenStream;
 use quote::quote;
 
 use crate::doc::extract_doc;
 
-// TODO: implement a handler for `short_only` field
-#[derive(FromDeriveInput)]
-#[darling(attributes(opt), forward_attrs(doc))]
-struct OptInput {
-    ident: syn::Ident,
+#[derive(FromAttributes)]
+struct Opt {
+    long: Option<syn::LitStr>,
 
-    attrs: Vec<syn::Attribute>,
+    short: Option<syn::LitChar>,
 
-    #[darling(default)]
-    long: Option<String>,
-
-    #[darling(default)]
-    short: Option<char>,
+    #[allow(dead_code)]
+    short_only: Option<()>,
 }
 
 pub fn derive_opt(input: TokenStream) -> syn::Result<TokenStream> {
     let input = syn::parse2::<syn::DeriveInput>(input)?;
 
-    let input = match OptInput::from_derive_input(&input) {
-        Ok(input) => input,
-        Err(err) => return Ok(err.write_errors()),
-    };
+    let attr = Opt::try_from_attributes(&input.attrs)?;
 
     let struct_name = &input.ident;
-    let long = input
-        .long
+    let long = attr
+        .as_ref()
+        .and_then(|attr| attr.long.clone())
+        .map(|lit_str| lit_str.value())
         .unwrap_or_else(|| struct_name.to_string().to_case(Case::Kebab));
 
-    let flag = match input.short {
+    let flag = match &attr.and_then(|opt| opt.short) {
         Some(short) => {
             quote! { cli_compose::schema::Flag::BothLongAndShort(#long.to_owned(), #short) }
         }

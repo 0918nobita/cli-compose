@@ -1,37 +1,32 @@
 use convert_case::{Case, Casing};
-use darling::{ast::Data, FromDeriveInput};
 use proc_macro2::TokenStream;
 use quote::quote;
 
-#[derive(FromDeriveInput)]
-struct FromKebabStr {
-    ident: syn::Ident,
-
-    data: Data<syn::Ident, syn::Field>,
-}
+static UNSUPPORTED_SHAPE: &str =
+    "`#[derive(FromKebabStr)]` can only be applied to enums whose variants have no field";
 
 pub fn derive_from_kebab_str(input: TokenStream) -> syn::Result<TokenStream> {
     let input = syn::parse2::<syn::DeriveInput>(input)?;
 
-    let input = match FromKebabStr::from_derive_input(&input) {
-        Ok(input) => input,
-        Err(err) => return Ok(err.write_errors()),
-    };
-
     let ty_name = &input.ident;
 
-    let variants = match &input.data {
-        Data::Enum(variants) => Ok(variants),
-        Data::Struct(fields) => Err(syn::Error::new_spanned(
-            &fields,
-            "`#[derive(FromKebabStr)]` can only be applied to enums whose variants have no field",
+    let data_enum = match &input.data {
+        syn::Data::Enum(data_enum) => Ok(data_enum),
+        syn::Data::Struct(data_struct) => Err(syn::Error::new_spanned(
+            data_struct.struct_token,
+            UNSUPPORTED_SHAPE,
+        )),
+        syn::Data::Union(data_union) => Err(syn::Error::new_spanned(
+            data_union.union_token,
+            UNSUPPORTED_SHAPE,
         )),
     }?;
 
-    let arms = variants
+    let arms = data_enum
+        .variants
         .iter()
         .map(|variant| {
-            let variant_str = variant.to_string().to_case(Case::Kebab);
+            let variant_str = variant.ident.to_string().to_case(Case::Kebab);
             quote! { #variant_str => Ok(#ty_name::#variant), }
         })
         .collect::<TokenStream>();
