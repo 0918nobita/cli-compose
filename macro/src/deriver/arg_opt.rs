@@ -2,6 +2,7 @@ use bae::FromAttributes;
 use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::Data;
 
 use crate::doc::extract_doc;
 
@@ -21,6 +22,34 @@ struct ArgOpt {
     use_default: Option<()>,
 }
 
+fn derive_parse_fn_from_enum(ty_name: &syn::Ident) -> TokenStream {
+    quote! {
+        fn parse(s: &str) -> Option<Self> {
+            <#ty_name as std::str::FromStr>::from_str(s).ok()
+        }
+    }
+}
+
+fn derive_parse_fn_from_struct(
+    struct_token: &syn::token::Struct,
+    fields: &syn::Fields,
+    ty_name: &syn::Ident,
+) -> syn::Result<TokenStream> {
+    let field = match fields.iter().collect::<Vec<_>>()[..] {
+        [field] => field,
+        _ => return Err(syn::Error::new_spanned(struct_token, UNSUPPORTED_SHAPE)),
+    };
+
+    let ty = &field.ty;
+
+    Ok(quote! {
+        fn parse(s: &str) -> Option<Self> {
+            let val = <#ty as std::str::FromStr>::from_str(s).ok()?;
+            Some(#ty_name(val))
+        }
+    })
+}
+
 pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
     let input = syn::parse2::<syn::DeriveInput>(input)?;
 
@@ -28,94 +57,51 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
 
     let ty_name = &input.ident;
 
-    match &input.data {
-        syn::Data::Enum(_) => {
-            let long = attr
-                .as_ref()
-                .and_then(|arg_opt| arg_opt.long.clone())
-                .map_or_else(
-                    || input.ident.to_string().to_case(Case::Kebab),
-                    |lit_str| lit_str.value(),
-                );
+    let long = attr
+        .as_ref()
+        .and_then(|arg_opt| arg_opt.long.clone())
+        .map_or_else(
+            || input.ident.to_string().to_case(Case::Kebab),
+            |lit_str| lit_str.value(),
+        );
 
-            let flag = match attr.and_then(|arg_opt| arg_opt.short) {
-                Some(short) => {
-                    quote! { cli_compose::schema::Flag::BothLongAndShort(#long.to_owned(), #short) }
-                }
-                None => quote! { cli_compose::schema::Flag::LongOnly(#long.to_owned()) },
-            };
-
-            let doc = extract_doc(&input.attrs);
-
-            Ok(quote! {
-                impl cli_compose::schema::AsArgOpt for #ty_name {
-                    fn flag() -> cli_compose::schema::Flag {
-                        #flag
-                    }
-
-                    fn description() -> String {
-                        #doc.to_owned()
-                    }
-
-                    fn parse(s: &str) -> Option<Self> {
-                        <#ty_name as std::str::FromStr>::from_str(s).ok()
-                    }
-                }
-            })
+    let flag = match attr.as_ref().and_then(|arg_opt| arg_opt.short.clone()) {
+        Some(short) => {
+            quote! { cli_compose::schema::Flag::BothLongAndShort(#long.to_owned(), #short) }
         }
+        None => quote! { cli_compose::schema::Flag::LongOnly(#long.to_owned()) },
+    };
 
-        syn::Data::Struct(syn::DataStruct {
+    let doc = extract_doc(&input.attrs);
+
+    let parse_fn = match &input.data {
+        Data::Enum(_) => Ok(derive_parse_fn_from_enum(ty_name)),
+
+        Data::Struct(syn::DataStruct {
             struct_token,
             fields,
             ..
-        }) => {
-            let field = match fields.iter().collect::<Vec<_>>()[..] {
-                [field] => field,
-                _ => return Err(syn::Error::new_spanned(struct_token, UNSUPPORTED_SHAPE)),
-            };
+        }) => derive_parse_fn_from_struct(struct_token, fields, ty_name),
 
-            let long = attr
-                .as_ref()
-                .and_then(|arg_opt| arg_opt.long.clone())
-                .map_or_else(
-                    || ty_name.to_string().to_case(Case::Kebab),
-                    |lit_str| lit_str.value(),
-                );
-
-            let flag = match attr.and_then(|arg_opt| arg_opt.short) {
-                Some(short) => {
-                    quote! { cli_compose::schema::Flag::BothLongAndShort(#long.to_owned(), #short) }
-                }
-                None => quote! { cli_compose::schema::Flag::LongOnly(#long.to_owned()) },
-            };
-
-            let doc = extract_doc(&input.attrs);
-
-            let ty = field.ty.clone();
-
-            Ok(quote! {
-                impl cli_compose::schema::AsArgOpt for #ty_name {
-                    fn flag() -> cli_compose::schema::Flag {
-                        #flag
-                    }
-
-                    fn description() -> String {
-                        #doc.to_owned()
-                    }
-
-                    fn parse(s: &str) -> Option<Self> {
-                        let val = <#ty as std::str::FromStr>::from_str(s).ok()?;
-                        Some(#ty_name(val))
-                    }
-                }
-            })
-        }
-
-        syn::Data::Union(data_union) => Err(syn::Error::new_spanned(
+        Data::Union(data_union) => Err(syn::Error::new_spanned(
             data_union.union_token,
             UNSUPPORTED_SHAPE,
         )),
-    }
+    }?;
+
+    Ok(quote! {
+        impl cli_compose::schema::AsArgOpt for #ty_name {
+            fn flag() -> cli_compose::schema::Flag {
+                #flag
+            }
+
+            fn description() -> String {
+                #doc.to_owned()
+            }
+
+            #parse_fn
+        }
+    })
 }
 
 #[cfg(test)]
@@ -152,6 +138,21 @@ mod tests {
     fn struct_with_multiple_fields() {
         insta::assert_debug_snapshot!(test_derive_arg_opt(quote! {
             struct Foo(String, i32);
+        }));
+    }
+
+    #[test]
+    fn _enum() {
+        insta::assert_display_snapshot!(test_derive_arg_opt(quote! {
+            enum Foo { Bar, Baz }
+        })
+        .unwrap());
+    }
+
+    #[test]
+    fn _union() {
+        insta::assert_debug_snapshot!(test_derive_arg_opt(quote! {
+            union Foo { f1: i32, f2: u32 }
         }));
     }
 }

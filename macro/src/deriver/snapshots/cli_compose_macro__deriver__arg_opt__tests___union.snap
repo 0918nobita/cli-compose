@@ -1,0 +1,10 @@
+---
+source: macro/src/deriver/arg_opt.rs
+assertion_line: 154
+expression: "test_derive_arg_opt(quote! { union Foo { f1 : i32, f2 : u32 } })"
+---
+Err(
+    Error(
+        "#[derive(ArgOpt)] can only be applied to structs with single unnamed field or enums",
+    ),
+)
