@@ -1,0 +1,17 @@
+---
+source: macro/src/deriver/pos_arg.rs
+assertion_line: 111
+expression: "test_derive_pos_arg(quote! { struct Foo(String) ; }).unwrap()"
+---
+impl cli_compose::schema::AsPosArg for Foo {
+    fn name() -> String {
+        "foo".to_owned()
+    }
+    fn description() -> String {
+        "".to_owned()
+    }
+    fn parse(s: &str) -> Option<Self> {
+        <String as std::str::FromStr>::from_str(s).ok().map(Self)
+    }
+}
+

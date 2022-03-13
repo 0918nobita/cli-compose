@@ -1,0 +1,10 @@
+---
+source: macro/src/deriver/pos_arg.rs
+assertion_line: 119
+expression: "test_derive_pos_arg(quote! { struct Foo(String, i32) ; })"
+---
+Err(
+    Error(
+        "multiple fields are not allowed",
+    ),
+)

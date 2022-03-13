@@ -1,0 +1,10 @@
+---
+source: macro/src/deriver/pos_arg.rs
+assertion_line: 99
+expression: "test_derive_pos_arg(quote! { })"
+---
+Err(
+    Error(
+        "unexpected end of input, expected one of: `struct`, `enum`, `union`",
+    ),
+)

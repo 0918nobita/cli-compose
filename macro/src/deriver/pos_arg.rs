@@ -83,3 +83,41 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
         }
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use quote::quote;
+
+    fn test_derive_pos_arg(input: proc_macro2::TokenStream) -> anyhow::Result<String> {
+        let tokens = super::derive_pos_arg(input)?;
+
+        crate::pretty_print::pretty_print_rust_code(tokens)
+    }
+
+    #[test]
+    fn empty() {
+        insta::assert_debug_snapshot!(test_derive_pos_arg(quote! {}));
+    }
+
+    #[test]
+    fn struct_without_field() {
+        insta::assert_debug_snapshot!(test_derive_pos_arg(quote! {
+            struct Foo;
+        }));
+    }
+
+    #[test]
+    fn struct_with_single_field() {
+        insta::assert_display_snapshot!(test_derive_pos_arg(quote! {
+            struct Foo(String);
+        })
+        .unwrap());
+    }
+
+    #[test]
+    fn struct_with_multiple_fields() {
+        insta::assert_debug_snapshot!(test_derive_pos_arg(quote! {
+            struct Foo(String, i32);
+        }));
+    }
+}
