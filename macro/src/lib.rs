@@ -1,6 +1,7 @@
 mod define_cli;
 mod deriver;
 mod doc;
+mod pretty_print;
 mod use_cli;
 
 use proc_macro::TokenStream;

@@ -31,8 +31,9 @@ pub fn define_cli(input: TokenStream) -> syn::Result<TokenStream> {
                 }
             }
         })
-        .collect::<TokenStream>()
-        .to_string();
+        .collect::<TokenStream>();
+
+    let contents = crate::pretty_print::pretty_print_rust_code(contents).unwrap();
 
     Ok(quote! {
         let out_dir = std::env::var("OUT_DIR").expect("$OUT_DIR is not set");

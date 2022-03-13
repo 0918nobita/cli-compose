@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "cli-compose-macro",
+    "macro",
     "playground",
     "playground/opts",
 ]
@@ -36,7 +36,7 @@ runtime = []
 schema = []
 
 [dependencies]
-cli-compose-macro = { path = "./cli-compose-macro" }
+cli-compose-macro = { path = "./macro" }
 derive_more = "0.99.17"
 str-macro = "1.0.0"
 

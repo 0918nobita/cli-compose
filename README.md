@@ -156,7 +156,7 @@ use cli_compose::runtime::{use_cli, AsCli};
 
 // includes `$OUT_DIR/cli_compose/example_cli.rs`
 // and imports `ExampleCli` struct
-cli_compose::runtime::use_cli! { example_cli::ExampleCli }
+use_cli! { example_cli::ExampleCli }
 
 pub fn main() {
     let res = Cli::parse(std::env::args()); // res: ExampleCliResult
