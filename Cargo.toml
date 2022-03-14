@@ -4,6 +4,7 @@ members = [
     "playground",
     "playground/opts",
 ]
+default-members = [ "macro" ]
 
 [package]
 name = "cli-compose"

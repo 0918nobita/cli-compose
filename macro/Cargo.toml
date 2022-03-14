@@ -1,7 +1,9 @@
 [package]
 name = "cli-compose-macro"
+description = "Macro implementations of cli-compose"
 version = "0.1.0"
 authors = ["Kodai Matsumoto <nobita.0918@gmail.com>"]
+repository = "https://github.com/0918nobita/cli-compose"
 license = "MIT"
 edition = "2021"
 
