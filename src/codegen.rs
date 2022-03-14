@@ -54,3 +54,30 @@ impl<T: AsMultiSelect> AsMember<MultiSelectTag> for T {
         MemberKind::MultiSelect
     }
 }
+
+pub struct CliBuilder<T> {
+    cli: std::marker::PhantomData<T>,
+}
+
+impl<T> CliBuilder<T> {
+    pub fn pos_arg<M: AsPosArg>(self) -> Self {
+        self
+    }
+
+    pub fn arg_opt<M: AsArgOpt>(self) -> Self {
+        self
+    }
+
+    pub fn opt<M: AsOpt>(self) -> Self {
+        self
+    }
+
+    pub fn build(self, _result_type_name: &str) {}
+}
+
+// TODO: 関数として define_cli を実装する
+pub fn define_cli2<T>() -> CliBuilder<T> {
+    CliBuilder {
+        cli: std::marker::PhantomData,
+    }
+}
