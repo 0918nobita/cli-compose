@@ -1,6 +1,7 @@
 use std::io::Write;
 use std::process;
 
+#[allow(dead_code)]
 pub fn pretty_print_rust_code(tokens: proc_macro2::TokenStream) -> anyhow::Result<String> {
     let mut rustfmt = process::Command::new("rustfmt")
         .stdin(process::Stdio::piped())

@@ -24,8 +24,10 @@ pub fn derive_opt(input: TokenStream) -> syn::Result<TokenStream> {
     let long = attr
         .as_ref()
         .and_then(|attr| attr.long.clone())
-        .map(|lit_str| lit_str.value())
-        .unwrap_or_else(|| struct_name.to_string().to_case(Case::Kebab));
+        .map_or_else(
+            || struct_name.to_string().to_case(Case::Kebab),
+            |lit_str| lit_str.value(),
+        );
 
     let flag = match &attr.and_then(|opt| opt.short) {
         Some(short) => {

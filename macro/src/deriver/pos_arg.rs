@@ -2,6 +2,7 @@ use bae::FromAttributes;
 use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::Data;
 
 use crate::doc::extract_doc;
 
@@ -21,13 +22,13 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
     let doc = extract_doc(&input.attrs);
 
     let struct_name = &input.ident;
-    let struct_name_kebab_case = attr
-        .and_then(|attr| attr.name)
-        .map(|lit_str| lit_str.value())
-        .unwrap_or_else(|| struct_name.to_string().to_case(Case::Kebab));
+    let struct_name_kebab_case = attr.and_then(|attr| attr.name).map_or_else(
+        || struct_name.to_string().to_case(Case::Kebab),
+        |lit_str| lit_str.value(),
+    );
 
     let parse_method = match &input.data {
-        syn::Data::Enum(_) => {
+        Data::Enum(_) => {
             quote! {
                 fn parse(s: &str) -> Option<Self> {
                     <#struct_name as std::str::FromStr>::from_str(s).ok()
@@ -35,7 +36,7 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
             }
         }
 
-        syn::Data::Struct(data_struct) => match data_struct.fields.iter().collect::<Vec<_>>()[..] {
+        Data::Struct(data_struct) => match data_struct.fields.iter().collect::<Vec<_>>()[..] {
             [field] => {
                 let ty = &field.ty;
                 if let Some(ident) = &field.ident {
@@ -61,7 +62,7 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
             }
         },
 
-        syn::Data::Union(data_union) => {
+        Data::Union(data_union) => {
             return Err(syn::Error::new_spanned(
                 data_union.union_token,
                 "unions are not allowed",

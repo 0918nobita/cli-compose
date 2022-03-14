@@ -164,6 +164,8 @@ version = "0.1.0"
 dependencies = [
  "cli-compose",
  "playground-opts",
+ "proc-macro2",
+ "quote",
 ]
 
 [[package]]

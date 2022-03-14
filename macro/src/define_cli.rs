@@ -1,36 +1,55 @@
 mod cli_def;
 mod cli_defs;
 
+use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
 use self::{cli_def::CliDef, cli_defs::CliDefs};
 
-pub fn define_cli(input: TokenStream) -> syn::Result<TokenStream> {
-    let defs: CliDefs = syn::parse2(input)?;
+fn codegen_from_cli_def(cli_def: &CliDef) -> TokenStream {
+    let filename = cli_def.cli_ty.to_string().to_case(Case::Snake);
 
-    let contents = defs.into_iter()
-        .map(|CliDef { cli_ty, res_ty, members }| {
-            let dump_members = members.iter().map(|member| {
-                let member_name = member.into_token_stream().to_string();
-                quote!{
-                    println!(
-                        "{: >6} │ {}",
-                        format!("{:?}", <#member as cli_compose::schema::AsMember<_>>::kind()),
-                        #member_name,
-                    );
-                }
-            }).collect::<TokenStream>();
+    let sharp = syn::Token![#]([proc_macro2::Span::call_site()]);
 
+    let members = cli_def
+        .members
+        .iter()
+        .map(|member| {
+            let member_name = member.into_token_stream().to_string();
             quote! {
+                format!(
+                    "{kind: >6} │ {name}",
+                    kind = format!("{:?}", <#member as cli_compose::codegen::AsMember<_>>::kind()),
+                    name = #member_name
+                ),
+            }
+        })
+        .collect::<TokenStream>();
+
+    let members = quote! {
+        vec![#members]
+            .into_iter()
+            .map(|member| quote::quote!{ #sharp member , })
+            .collect::<proc_macro2::TokenStream>()
+    };
+
+    let cli_ty = &cli_def.cli_ty;
+    let res_ty = &cli_def.res_ty;
+
+    // evaluated at runtime of build.rs
+    quote! {
+        let mut dest = dest_dir.join(#filename);
+        dest.set_extension("rs");
+
+        let members = #members;
+        let members = quote::quote! { &[#sharp members] };
+
+        std::fs::write(
+            &dest,
+            quote::quote! {
                 #[allow(dead_code)]
-                struct #res_ty {
-                    input: String,
-                    output: Option<String>,
-                    stdin: Option<playground_opts::StdinOpt>,
-                    stdout: Option<playground_opts::StdoutOpt>,
-                    verbose: Option<playground_opts::Verbose>,
-                }
+                struct #res_ty;
 
                 #[allow(dead_code)]
                 impl cli_compose::runtime::AsCli<#res_ty> for #cli_ty {
@@ -38,28 +57,32 @@ pub fn define_cli(input: TokenStream) -> syn::Result<TokenStream> {
                         let tokens = cli_compose::runtime::parse_into_tokens(args).collect::<Vec<_>>();
                         println!("tokens: {:?}", tokens);
                         println!("───────┬───────────────────────────────");
-                        #dump_members
+                        for member in #sharp members {
+                            println!("{}", member);
+                        }
                         todo!()
                     }
                 }
-            }
-        })
-        .collect::<TokenStream>();
+            }.to_string()
+        ).unwrap();
+    }
+}
 
-    let contents = crate::pretty_print::pretty_print_rust_code(contents).unwrap();
+pub fn define_cli(input: TokenStream) -> syn::Result<TokenStream> {
+    let defs: CliDefs = syn::parse2(input)?;
+
+    let codegen = defs
+        .into_iter()
+        .map(codegen_from_cli_def)
+        .collect::<TokenStream>();
 
     Ok(quote! {
         let out_dir = std::env::var("OUT_DIR").expect("$OUT_DIR is not set");
 
-        let mut dest = std::path::PathBuf::from(&out_dir).join("cli_compose");
+        let mut dest_dir = std::path::Path::new(&out_dir).join("cli_compose");
 
-        std::fs::create_dir_all(&dest).expect("Failed to create cli_compose directory");
+        std::fs::create_dir_all(&dest_dir).expect("Failed to create cli_compose directory");
 
-        dest.push("cli.rs");
-
-        std::fs::write(&dest, #contents).unwrap_or_else(|err| {
-            eprintln!("{}", err);
-            panic!("Failed to write source file ({:?})", &dest);
-        });
+        #codegen
     })
 }

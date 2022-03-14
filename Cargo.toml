@@ -32,7 +32,7 @@ include = [
 ]
 
 [features]
-codegen = []
+codegen = [ "schema" ]
 runtime = []
 schema = []
 
