@@ -1,4 +1,4 @@
-use playground_opts::Cli;
+use playground_opts::*;
 
 fn main() {
     cli_compose::codegen::define_cli! {
@@ -13,12 +13,12 @@ fn main() {
     };
 
     cli_compose::codegen::define_cli2::<Cli>()
-        .pos_arg::<playground_opts::Input>()
-        .opt::<playground_opts::StdinOpt>()
-        .arg_opt::<playground_opts::Output>()
-        .opt::<playground_opts::StdoutOpt>()
-        .arg_opt::<playground_opts::InputFormat>()
-        .opt::<playground_opts::Verbose>()
+        .pos_arg::<Input>()
+        .opt::<StdinOpt>()
+        .arg_opt::<Output>()
+        .opt::<StdoutOpt>()
+        .arg_opt::<InputFormat>()
+        .opt::<Verbose>()
         .build("CliResult");
 
     println!("cargo:rerun-if-changed=build.rs");
