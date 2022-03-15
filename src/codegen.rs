@@ -7,56 +7,59 @@ use thiserror::Error;
 
 use crate::schema::{AsArgOpt, AsCliMeta, AsMultiSelect, AsOpt, AsPosArg, AsSingleSelect};
 
-#[derive(Debug)]
-pub enum MemberKind {
-    PosArg,
-    ArgOpt,
-    Opt,
-    SingleSelect,
-    MultiSelect,
-}
-
 pub trait AsMember<Tag> {
-    fn kind() -> MemberKind;
+    fn handle(builder: CliBuilder) -> CliBuilder;
 }
 
 pub struct PosArgTag;
 
 impl<T: AsPosArg> AsMember<PosArgTag> for T {
-    fn kind() -> MemberKind {
-        MemberKind::PosArg
+    fn handle(mut builder: CliBuilder) -> CliBuilder {
+        let name = T::name();
+        builder.ops.extend(quote! {
+            println!("PosArg {}", #name);
+        });
+        builder
     }
 }
 
 pub struct ArgOptTag;
 
 impl<T: AsArgOpt> AsMember<ArgOptTag> for T {
-    fn kind() -> MemberKind {
-        MemberKind::ArgOpt
+    fn handle(mut builder: CliBuilder) -> CliBuilder {
+        let flag = format!("{}", T::flag());
+        builder.ops.extend(quote! {
+            println!("ArgOpt {}", #flag);
+        });
+        builder
     }
 }
 
 pub struct OptTag;
 
 impl<T: AsOpt> AsMember<OptTag> for T {
-    fn kind() -> MemberKind {
-        MemberKind::Opt
+    fn handle(mut builder: CliBuilder) -> CliBuilder {
+        let flag = format!("{}", T::flag());
+        builder.ops.extend(quote! {
+            println!("   Opt {}", #flag);
+        });
+        builder
     }
 }
 
 pub struct SingleSelectTag;
 
 impl<T: AsSingleSelect> AsMember<SingleSelectTag> for T {
-    fn kind() -> MemberKind {
-        MemberKind::SingleSelect
+    fn handle(_builder: CliBuilder) -> CliBuilder {
+        todo!()
     }
 }
 
 pub struct MultiSelectTag;
 
 impl<T: AsMultiSelect> AsMember<MultiSelectTag> for T {
-    fn kind() -> MemberKind {
-        MemberKind::MultiSelect
+    fn handle(_builder: CliBuilder) -> CliBuilder {
+        todo!()
     }
 }
 
@@ -90,28 +93,8 @@ impl CliBuilder {
         })
     }
 
-    pub fn pos_arg<M: AsPosArg>(mut self) -> Self {
-        let name = M::name();
-        self.ops.extend(quote! {
-            println!("PosArg {}", #name);
-        });
-        self
-    }
-
-    pub fn arg_opt<M: AsArgOpt>(mut self) -> Self {
-        let flag = format!("{}", M::flag());
-        self.ops.extend(quote! {
-            println!("ArgOpt {}", #flag);
-        });
-        self
-    }
-
-    pub fn opt<M: AsOpt>(mut self) -> Self {
-        let flag = format!("{}", M::flag());
-        self.ops.extend(quote! {
-            println!("Opt {}", #flag);
-        });
-        self
+    pub fn member<M: AsMember<T>, T>(self) -> Self {
+        M::handle(self)
     }
 
     pub fn build(self, result_type_name: &str) -> Result<(), CliBuilderError> {

@@ -3,12 +3,12 @@ use playground_opts::*;
 fn main() {
     cli_compose::codegen::define_cli::<Cli>("playground_opts")
         .unwrap()
-        .pos_arg::<Input>()
-        .opt::<StdinOpt>()
-        .arg_opt::<Output>()
-        .opt::<StdoutOpt>()
-        .arg_opt::<InputFormat>()
-        .opt::<Verbose>()
+        .member::<Input, _>()
+        .member::<StdinOpt, _>()
+        .member::<Output, _>()
+        .member::<StdoutOpt, _>()
+        .member::<InputFormat, _>()
+        .member::<Verbose, _>()
         .build("CliResult")
         .unwrap();
 
