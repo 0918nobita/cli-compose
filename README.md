@@ -129,22 +129,20 @@ pub struct ExampleCli;
 
 ```rust
 use cli_compose::codegen::define_cli;
+use opts::{Cli, InputFormat, InputGroup, OutputGroup, Verbose};
 
 fn main() {
     // generates `$OUT_DIR/cli_compose/example_cli.rs`,
     // which defines `ExampleCliResult` struct
     // and implements `cli_compose::runtime::AsCli<ExampleCliResult>` trait for `ExampleCli` struct
-    define_cli! {
-        ExampleCli -> ExampleCliResult {
-            input = opts::InputGroup,
-
-            // equivalent to `input_format = opts::InputFormat`
-            opts::InputFormat,
-
-            output = opts::OutputGroup,
-
-            opts::Verbose,
-        },
+    define_cli::<Cli>("opts")
+        .unwrap()
+        .single_select::<InputGroup>()
+        .arg_opt::<InputFormat>()
+        .single_select::<OutputGroup>()
+        .opt::<Verbose>()
+        .build("ExampleCliResult")
+        .unwrap();
     }
 }
 ```
