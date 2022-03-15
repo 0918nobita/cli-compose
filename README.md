@@ -1,6 +1,6 @@
 # cli-compose
 
-> Composable, strict CLI parser with compile-time analysis for Rust
+> Composable, strict CLI framework with static analysis for Rust
 
 [![Test](https://github.com/0918nobita/cli-compose/actions/workflows/test.yml/badge.svg)](https://github.com/0918nobita/cli-compose/actions/workflows/test.yml) [![Clippy](https://github.com/0918nobita/cli-compose/actions/workflows/clippy.yml/badge.svg)](https://github.com/0918nobita/cli-compose/actions/workflows/clippy.yml) [![Rustfmt](https://github.com/0918nobita/cli-compose/actions/workflows/rustfmt.yml/badge.svg)](https://github.com/0918nobita/cli-compose/actions/workflows/rustfmt.yml) [![codecov](https://codecov.io/gh/0918nobita/cli-compose/branch/main/graph/badge.svg?token=PBAO6WHOKE)](https://codecov.io/gh/0918nobita/cli-compose)
 

@@ -9,7 +9,7 @@ default-members = [ "macro" ]
 [package]
 name = "cli-compose"
 version = "0.1.0"
-description = "Composable, strict CLI parser with compile-time analysis for Rust"
+description = "Composable, strict CLI framework with static analysis for Rust"
 authors = ["Kodai Matsumoto <nobita.0918@gmail.com>"]
 repository = "https://github.com/0918nobita/cli-compose"
 categories = ["command-line-interface"]
