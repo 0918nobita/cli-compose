@@ -1,6 +1,7 @@
 use derive_more::Display;
 
 pub use cli_compose_macro::{ArgOpt, Cli, FromKebabStr, MultiSelect, Opt, PosArg, SingleSelect};
+pub use syn::{parse_str, Ident, Type};
 
 #[derive(Display)]
 pub enum Flag {
@@ -20,6 +21,8 @@ pub trait AsPosArg: Sized {
     fn description() -> String;
 
     fn parse(s: &str) -> Option<Self>;
+
+    fn result() -> syn::Type;
 }
 
 pub trait AsArgOpt: Sized {
@@ -47,8 +50,6 @@ pub trait AsMultiSelect {
 
     fn description() -> String;
 }
-
-pub type Ident = syn::Ident;
 
 pub trait AsCliMeta {
     fn ident() -> syn::Ident;

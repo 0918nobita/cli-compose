@@ -1,7 +1,7 @@
 use bae::FromAttributes;
 use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::Data;
 
 use crate::doc::extract_doc;
@@ -21,17 +21,22 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
 
     let doc = extract_doc(&input.attrs);
 
-    let struct_name = &input.ident;
-    let struct_name_kebab_case = attr.and_then(|attr| attr.name).map_or_else(
-        || struct_name.to_string().to_case(Case::Kebab),
+    let ty_name = &input.ident;
+    let ty_name_str = ty_name.to_string();
+    let ty_name_kebab_case = attr.and_then(|attr| attr.name).map_or_else(
+        || ty_name_str.to_case(Case::Kebab),
         |lit_str| lit_str.value(),
     );
 
-    let parse_method = match &input.data {
+    let methods = match &input.data {
         Data::Enum(_) => {
             quote! {
                 fn parse(s: &str) -> Option<Self> {
-                    <#struct_name as std::str::FromStr>::from_str(s).ok()
+                    <#ty_name as std::str::FromStr>::from_str(s).ok()
+                }
+
+                fn result() -> cli_compose::schema::Type {
+                    cli_compose::schema::parse_str(#ty_name_str).unwrap()
                 }
             }
         }
@@ -39,7 +44,8 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
         Data::Struct(data_struct) => match data_struct.fields.iter().collect::<Vec<_>>()[..] {
             [field] => {
                 let ty = &field.ty;
-                if let Some(ident) = &field.ident {
+                let ty_name = ty.into_token_stream().to_string();
+                let parse_method = if let Some(ident) = &field.ident {
                     quote! {
                         fn parse(s: &str) -> Option<Self> {
                             <#ty as std::str::FromStr>::from_str(s).ok().map(|v| Self { #ident: v })
@@ -50,6 +56,13 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
                         fn parse(s: &str) -> Option<Self> {
                             <#ty as std::str::FromStr>::from_str(s).ok().map(Self)
                         }
+                    }
+                };
+                quote! {
+                    #parse_method
+
+                    fn result() -> cli_compose::schema::Type {
+                        cli_compose::schema::parse_str(#ty_name).unwrap()
                     }
                 }
             }
@@ -71,16 +84,16 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
     };
 
     Ok(quote::quote! {
-        impl cli_compose::schema::AsPosArg for #struct_name {
+        impl cli_compose::schema::AsPosArg for #ty_name {
             fn name() -> String {
-                #struct_name_kebab_case.to_owned()
+                #ty_name_kebab_case.to_owned()
             }
 
             fn description() -> String {
                 #doc.to_owned()
             }
 
-            #parse_method
+            #methods
         }
     })
 }

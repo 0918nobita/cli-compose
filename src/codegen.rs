@@ -2,7 +2,7 @@ use std::fs;
 
 use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use thiserror::Error;
 
 use crate::schema::{AsArgOpt, AsCliMeta, AsMultiSelect, AsOpt, AsPosArg, AsSingleSelect};
@@ -16,9 +16,13 @@ pub struct PosArgTag;
 impl<T: AsPosArg> AsMember<PosArgTag> for T {
     fn handle(mut builder: CliBuilder) -> CliBuilder {
         let name = T::name();
+
+        let res_ty = T::result().into_token_stream().to_string();
+
         builder.ops.extend(quote! {
-            println!("PosArg {}", #name);
+            println!("PosArg {} ({})", #name, #res_ty);
         });
+
         builder
     }
 }
@@ -86,6 +90,7 @@ type CliBuilderResult<T> = Result<T, CliBuilderError>;
 impl CliBuilder {
     pub fn new<Cli: AsCliMeta>(base_path: &str) -> CliBuilderResult<Self> {
         let base_path = syn::parse_str(base_path).map_err(|_| CliBuilderError::InvalidBasePath)?;
+
         Ok(CliBuilder {
             base_path,
             cli_ty: Cli::ident(),
@@ -113,9 +118,7 @@ impl CliBuilder {
             syn::parse_str(result_type_name).map_err(|_| CliBuilderError::InvalidResultTypeName)?;
 
         let base_path = self.base_path;
-
         let cli_ty = self.cli_ty;
-
         let ops = self.ops;
 
         let contents = quote! {
