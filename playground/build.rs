@@ -1,7 +1,7 @@
 use playground_opts::*;
 
 fn main() {
-    cli_compose::codegen::CliBuilder::new::<Cli>("playground_opts")
+    cli_compose::codegen::define_cli::<Cli>("playground_opts")
         .unwrap()
         .pos_arg::<Input>()
         .opt::<StdinOpt>()

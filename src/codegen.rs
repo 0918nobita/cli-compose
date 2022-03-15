@@ -1,5 +1,3 @@
-pub use cli_compose_macro::define_cli;
-
 use std::fs;
 
 use convert_case::{Case, Casing};
@@ -153,4 +151,8 @@ impl CliBuilder {
 
         fs::write(&dest, contents.to_string()).map_err(|e| CliBuilderError::Other(e.into()))
     }
+}
+
+pub fn define_cli<Cli: AsCliMeta>(base_path: &str) -> CliBuilderResult<CliBuilder> {
+    CliBuilder::new::<Cli>(base_path)
 }
