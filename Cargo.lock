@@ -31,10 +31,16 @@ dependencies = [
 name = "cli-compose"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "cli-compose-macro",
+ "convert_case 0.5.0",
  "derive_more",
  "insta",
+ "proc-macro2",
+ "quote",
  "str-macro",
+ "syn",
+ "thiserror",
 ]
 
 [[package]]
@@ -164,8 +170,6 @@ version = "0.1.0"
 dependencies = [
  "cli-compose",
  "playground-opts",
- "proc-macro2",
- "quote",
 ]
 
 [[package]]
@@ -312,6 +316,26 @@ checksum = "633c1a546cee861a1a6d0dc69ebeca693bf4296661ba7852b9d21d159e0506df"
 dependencies = [
  "libc",
  "winapi",
+]
+
+[[package]]
+name = "thiserror"
+version = "1.0.30"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "854babe52e4df1653706b98fcfc05843010039b406875930a70e4d9644e5c417"
+dependencies = [
+ "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "1.0.30"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa32fd3f627f367fe16f893e2597ae3c05020f8bba2666a4e6ea73d377e5714b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

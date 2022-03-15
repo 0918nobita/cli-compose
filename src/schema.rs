@@ -47,3 +47,13 @@ pub trait AsMultiSelect {
 
     fn description() -> String;
 }
+
+pub type Ident = syn::Ident;
+
+pub trait AsCliMeta {
+    fn ident() -> syn::Ident;
+}
+
+pub fn ident(name: &str) -> Ident {
+    Ident::new(name, proc_macro2::Span::call_site())
+}
