@@ -137,10 +137,10 @@ fn main() {
     // and implements `cli_compose::runtime::AsCli<ExampleCliResult>` trait for `ExampleCli` struct
     define_cli::<Cli>("opts")
         .unwrap()
-        .single_select::<InputGroup>()
-        .arg_opt::<InputFormat>()
-        .single_select::<OutputGroup>()
-        .opt::<Verbose>()
+        .member::<InputGroup>()
+        .member::<InputFormat>()
+        .member::<OutputGroup>()
+        .member::<Verbose>()
         .build("ExampleCliResult")
         .unwrap();
     }
