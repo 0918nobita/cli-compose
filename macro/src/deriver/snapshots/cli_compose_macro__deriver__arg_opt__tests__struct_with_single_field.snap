@@ -1,8 +1,17 @@
 ---
-source: cli-compose-macro/src/deriver/arg_opt.rs
-assertion_line: 159
+source: macro/src/deriver/arg_opt.rs
+assertion_line: 145
 expression: "test_derive_arg_opt(quote! { struct Foo(String) ; }).unwrap()"
 ---
+impl cli_compose::schema::AsMember for Foo {
+    fn handle(mut builder: cli_compose::schema::CliBuilder) -> cli_compose::schema::CliBuilder {
+        let flag = format!("{}", <Foo as cli_compose::schema::AsArgOpt>::flag());
+        builder
+            .ops
+            .extend(cli_compose::schema::quote! { println ! ("   Opt {}" , # flag) ; });
+        builder
+    }
+}
 impl cli_compose::schema::AsArgOpt for Foo {
     fn flag() -> cli_compose::schema::Flag {
         cli_compose::schema::Flag::LongOnly("foo".to_owned())

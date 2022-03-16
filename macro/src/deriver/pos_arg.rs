@@ -83,7 +83,23 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
         }
     };
 
+    let sharp = syn::Token![#](proc_macro2::Span::call_site());
+
     Ok(quote::quote! {
+        impl cli_compose::schema::AsMember for #ty_name {
+            fn handle(mut builder: cli_compose::schema::CliBuilder) -> cli_compose::schema::CliBuilder {
+                let name = <#ty_name as cli_compose::schema::AsPosArg>::name();
+
+                let res_ty = <cli_compose::schema::Type as cli_compose::schema::ToTokens>::into_token_stream(<#ty_name as cli_compose::schema::AsPosArg>::result()).to_string();
+
+                builder.ops.extend(cli_compose::schema::quote! {
+                    println!("PosArg {} ({})", #sharp name, #sharp res_ty);
+                });
+
+                builder
+            }
+        }
+
         impl cli_compose::schema::AsPosArg for #ty_name {
             fn name() -> String {
                 #ty_name_kebab_case.to_owned()

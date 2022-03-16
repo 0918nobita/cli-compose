@@ -1,8 +1,22 @@
 ---
 source: macro/src/deriver/pos_arg.rs
-assertion_line: 125
+assertion_line: 141
 expression: "test_derive_pos_arg(quote! { struct Foo(String) ; }).unwrap()"
 ---
+impl cli_compose::schema::AsMember for Foo {
+    fn handle(mut builder: cli_compose::schema::CliBuilder) -> cli_compose::schema::CliBuilder {
+        let name = <Foo as cli_compose::schema::AsPosArg>::name();
+        let res_ty =
+            <cli_compose::schema::Type as cli_compose::schema::ToTokens>::into_token_stream(
+                <Foo as cli_compose::schema::AsPosArg>::result(),
+            )
+            .to_string();
+        builder.ops.extend(
+            cli_compose::schema::quote! { println ! ("PosArg {} ({})" , # name , # res_ty) ; },
+        );
+        builder
+    }
+}
 impl cli_compose::schema::AsPosArg for Foo {
     fn name() -> String {
         "foo".to_owned()

@@ -38,7 +38,21 @@ pub fn derive_opt(input: TokenStream) -> syn::Result<TokenStream> {
 
     let doc = extract_doc(&input.attrs);
 
+    let sharp = syn::Token![#](proc_macro2::Span::call_site());
+
     Ok(quote! {
+        impl cli_compose::schema::AsMember for #struct_name {
+            fn handle(mut builder: cli_compose::schema::CliBuilder) -> cli_compose::schema::CliBuilder {
+                let flag = format!("{}", <#struct_name as cli_compose::schema::AsOpt>::flag());
+
+                builder.ops.extend(cli_compose::schema::quote! {
+                    println!("ArgOpt {}", #sharp flag);
+                });
+
+                builder
+            }
+        }
+
         impl cli_compose::schema::AsOpt for #struct_name {
             fn flag() -> cli_compose::schema::Flag {
                 #flag
