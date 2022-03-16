@@ -35,8 +35,8 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
                     <#ty_name as std::str::FromStr>::from_str(s).ok()
                 }
 
-                fn result() -> cli_compose::schema::Type {
-                    cli_compose::schema::parse_str(#ty_name_str).unwrap()
+                fn result() -> cli_compose::schema::forwarded::syn::Type {
+                    cli_compose::schema::forwarded::syn::parse_str(#ty_name_str).unwrap()
                 }
             }
         }
@@ -61,8 +61,8 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
                 quote! {
                     #parse_method
 
-                    fn result() -> cli_compose::schema::Type {
-                        cli_compose::schema::parse_str(#ty_name).unwrap()
+                    fn result() -> cli_compose::schema::forwarded::syn::Type {
+                        cli_compose::schema::forwarded::syn::parse_str(#ty_name).unwrap()
                     }
                 }
             }
@@ -88,11 +88,16 @@ pub fn derive_pos_arg(input: TokenStream) -> syn::Result<TokenStream> {
     Ok(quote::quote! {
         impl cli_compose::schema::AsMember for #ty_name {
             fn handle(mut builder: cli_compose::schema::CliBuilder) -> cli_compose::schema::CliBuilder {
-                let name = <#ty_name as cli_compose::schema::AsPosArg>::name();
+                use cli_compose::schema::{forwarded::{syn, quote}, AsPosArg};
 
-                let res_ty = <cli_compose::schema::Type as cli_compose::schema::ToTokens>::into_token_stream(<#ty_name as cli_compose::schema::AsPosArg>::result()).to_string();
+                let name = <#ty_name as AsPosArg>::name();
 
-                builder.ops.extend(cli_compose::schema::quote! {
+                let res_ty =
+                    <syn::Type as quote::ToTokens>::into_token_stream(
+                        <#ty_name as AsPosArg>::result()
+                    ).to_string();
+
+                builder.ops.extend(quote::quote! {
                     println!("PosArg {} ({})", #sharp name, #sharp res_ty);
                 });
 

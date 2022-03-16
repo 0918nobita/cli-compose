@@ -1,19 +1,20 @@
 ---
 source: macro/src/deriver/pos_arg.rs
-assertion_line: 141
+assertion_line: 146
 expression: "test_derive_pos_arg(quote! { struct Foo(String) ; }).unwrap()"
 ---
 impl cli_compose::schema::AsMember for Foo {
     fn handle(mut builder: cli_compose::schema::CliBuilder) -> cli_compose::schema::CliBuilder {
-        let name = <Foo as cli_compose::schema::AsPosArg>::name();
-        let res_ty =
-            <cli_compose::schema::Type as cli_compose::schema::ToTokens>::into_token_stream(
-                <Foo as cli_compose::schema::AsPosArg>::result(),
-            )
+        use cli_compose::schema::{
+            forwarded::{quote, syn},
+            AsPosArg,
+        };
+        let name = <Foo as AsPosArg>::name();
+        let res_ty = <syn::Type as quote::ToTokens>::into_token_stream(<Foo as AsPosArg>::result())
             .to_string();
-        builder.ops.extend(
-            cli_compose::schema::quote! { println ! ("PosArg {} ({})" , # name , # res_ty) ; },
-        );
+        builder
+            .ops
+            .extend(quote::quote! { println ! ("PosArg {} ({})" , # name , # res_ty) ; });
         builder
     }
 }
@@ -27,8 +28,8 @@ impl cli_compose::schema::AsPosArg for Foo {
     fn parse(s: &str) -> Option<Self> {
         <String as std::str::FromStr>::from_str(s).ok().map(Self)
     }
-    fn result() -> cli_compose::schema::Type {
-        cli_compose::schema::parse_str("String").unwrap()
+    fn result() -> cli_compose::schema::forwarded::syn::Type {
+        cli_compose::schema::forwarded::syn::parse_str("String").unwrap()
     }
 }
 

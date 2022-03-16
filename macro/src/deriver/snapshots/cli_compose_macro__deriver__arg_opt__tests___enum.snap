@@ -1,14 +1,15 @@
 ---
 source: macro/src/deriver/arg_opt.rs
-assertion_line: 160
+assertion_line: 162
 expression: "test_derive_arg_opt(quote! { enum Foo { Bar, Baz } }).unwrap()"
 ---
 impl cli_compose::schema::AsMember for Foo {
     fn handle(mut builder: cli_compose::schema::CliBuilder) -> cli_compose::schema::CliBuilder {
-        let flag = format!("{}", <Foo as cli_compose::schema::AsArgOpt>::flag());
+        use cli_compose::schema::{forwarded::quote::quote, AsArgOpt};
+        let flag = format!("{}", <Foo as AsArgOpt>::flag());
         builder
             .ops
-            .extend(cli_compose::schema::quote! { println ! ("   Opt {}" , # flag) ; });
+            .extend(quote! { println ! ("   Opt {}" , # flag) ; });
         builder
     }
 }

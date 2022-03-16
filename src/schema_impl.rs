@@ -5,10 +5,6 @@ use derive_more::Display;
 use proc_macro2::TokenStream;
 use thiserror::Error;
 
-pub use cli_compose_macro::{ArgOpt, Cli, FromKebabStr, MultiSelect, Opt, PosArg, SingleSelect};
-pub use quote::{quote, ToTokens};
-pub use syn::{parse_str, Ident, Type};
-
 #[derive(Display)]
 pub enum Flag {
     #[display(fmt = "--{}", _0)]
@@ -65,8 +61,8 @@ pub trait AsCliMeta {
     fn ident() -> syn::Ident;
 }
 
-pub fn ident(name: &str) -> Ident {
-    Ident::new(name, proc_macro2::Span::call_site())
+pub fn ident(name: &str) -> syn::Ident {
+    syn::Ident::new(name, proc_macro2::Span::call_site())
 }
 
 #[derive(Debug, Error)]
@@ -123,7 +119,7 @@ impl CliBuilder {
         let cli_ty = self.cli_ty;
         let ops = self.ops;
 
-        let contents = quote! {
+        let contents = quote::quote! {
             struct #result_type {
             }
 

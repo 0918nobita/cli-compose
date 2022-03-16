@@ -43,9 +43,11 @@ pub fn derive_opt(input: TokenStream) -> syn::Result<TokenStream> {
     Ok(quote! {
         impl cli_compose::schema::AsMember for #struct_name {
             fn handle(mut builder: cli_compose::schema::CliBuilder) -> cli_compose::schema::CliBuilder {
-                let flag = format!("{}", <#struct_name as cli_compose::schema::AsOpt>::flag());
+                use cli_compose::schema::{forwarded::quote::quote, AsOpt};
 
-                builder.ops.extend(cli_compose::schema::quote! {
+                let flag = format!("{}", <#struct_name as AsOpt>::flag());
+
+                builder.ops.extend(quote! {
                     println!("ArgOpt {}", #sharp flag);
                 });
 

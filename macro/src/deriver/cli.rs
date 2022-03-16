@@ -8,7 +8,7 @@ pub fn derive_cli(input: TokenStream) -> syn::Result<TokenStream> {
 
     Ok(quote::quote! {
         impl cli_compose::schema::AsCliMeta for #ident {
-            fn ident() -> cli_compose::schema::Ident {
+            fn ident() -> cli_compose::schema::forwarded::syn::Ident {
                 cli_compose::schema::ident(#ident_str)
             }
         }
