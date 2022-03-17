@@ -23,3 +23,14 @@ pub fn use_cli(input: TokenStream) -> syn::Result<TokenStream> {
         use #path;
     })
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_use_cli() {
+        let input = quote::quote! { opts::ExampleOpts };
+        insta::assert_display_snapshot!(super::use_cli(input)
+            .map(|tokens| crate::pretty_print::pretty_print_rust_code(tokens).unwrap())
+            .unwrap());
+    }
+}

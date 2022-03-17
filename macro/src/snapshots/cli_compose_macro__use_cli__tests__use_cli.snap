@@ -1,0 +1,8 @@
+---
+source: macro/src/use_cli.rs
+assertion_line: 32
+expression: "super::use_cli(input).map(|tokens|\n            crate::pretty_print::pretty_print_rust_code(tokens).unwrap()).unwrap()"
+---
+include!(concat!(env!("OUT_DIR"), "/cli_compose/example-opts.rs"));
+use opts::ExampleOpts;
+
