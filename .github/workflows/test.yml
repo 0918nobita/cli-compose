@@ -3,7 +3,7 @@ name: Test
 on: push
 
 jobs:
-  test:
+  macro:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -13,4 +13,40 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --verbose --all-features --workspace
+          args: -p cli-compose-macro --verbose
+
+  codegen-feature:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p cli-compose --features codegen --verbose
+
+  runtime-feature:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p cli-compose --features runtime --verbose
+
+  schema-feature:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p cli-compose --features schema --verbose

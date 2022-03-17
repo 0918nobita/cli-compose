@@ -1,0 +1,7 @@
+[coverage]
+packages = [ "cli-compose", "cli-compose-macro" ]
+all-features = true
+verbose = true
+
+[report]
+out = [ "Xml" ]
