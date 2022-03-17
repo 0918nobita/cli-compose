@@ -14,3 +14,14 @@ pub fn derive_cli(input: TokenStream) -> syn::Result<TokenStream> {
         }
     })
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_derive_cli() {
+        let input = quote::quote! { struct Cli; };
+        insta::assert_display_snapshot!(super::derive_cli(input)
+            .map(|tokens| crate::pretty_print::pretty_print_rust_code(tokens).unwrap())
+            .unwrap());
+    }
+}
