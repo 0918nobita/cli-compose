@@ -189,5 +189,5 @@ Verbose: None
 ## Example program to test features already implemented
 
 ```bash
-cargo run -p playground
+cargo run -p example
 ```

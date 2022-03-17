@@ -1,5 +1,5 @@
 [package]
-name = "playground"
+name = "example"
 version = "0.1.0"
 authors = ["Kodai Matsumoto <nobita.0918@gmail.com>"]
 license = "MIT"
@@ -7,8 +7,8 @@ edition = "2021"
 
 [dependencies]
 cli-compose = { path = "../", features = [ "runtime" ] }
-playground-opts = { path = "./opts" }
+example-opts = { path = "./opts" }
 
 [build-dependencies]
 cli-compose = { path = "../", features = [ "codegen" ] }
-playground-opts = { path = "./opts" }
+example-opts = { path = "./opts" }

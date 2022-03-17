@@ -102,6 +102,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a357d28ed41a50f9c765dbfe56cbc04a64e53e5fc58ba79fbc34c10ef3df831f"
 
 [[package]]
+name = "example"
+version = "0.1.0"
+dependencies = [
+ "cli-compose",
+ "example-opts",
+]
+
+[[package]]
+name = "example-opts"
+version = "0.1.0"
+dependencies = [
+ "cli-compose",
+]
+
+[[package]]
 name = "hashbrown"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -163,21 +178,6 @@ name = "once_cell"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "87f3e037eac156d1775da914196f0f37741a274155e34a0b7e427c35d2a2ecb9"
-
-[[package]]
-name = "playground"
-version = "0.1.0"
-dependencies = [
- "cli-compose",
- "playground-opts",
-]
-
-[[package]]
-name = "playground-opts"
-version = "0.1.0"
-dependencies = [
- "cli-compose",
-]
 
 [[package]]
 name = "proc-macro-error"

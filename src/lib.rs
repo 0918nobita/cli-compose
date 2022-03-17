@@ -1,4 +1,4 @@
-//! Next-generation, type-safe CLI parser for Rust
+//! Composable, strict CLI framework with static analysis for Rust
 
 #[cfg(any(feature = "schema", feature = "codegen"))]
 mod schema_impl;

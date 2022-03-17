@@ -1,8 +1,8 @@
 [workspace]
 members = [
     "macro",
-    "playground",
-    "playground/opts",
+    "example",
+    "example/opts",
 ]
 default-members = [ "macro" ]
 
