@@ -132,9 +132,6 @@ use cli_compose::codegen::define_cli;
 use opts::{Cli, InputFormat, InputGroup, OutputGroup, Verbose};
 
 fn main() {
-    // generates `$OUT_DIR/cli_compose/example_cli.rs`,
-    // which defines `ExampleCliResult` struct
-    // and implements `cli_compose::runtime::AsCli<ExampleCliResult>` trait for `ExampleCli` struct
     define_cli::<Cli>("opts")
         .unwrap()
         .member::<InputGroup>()
