@@ -1,7 +1,7 @@
 ---
 source: macro/src/deriver/pos_arg.rs
 assertion_line: 146
-expression: "test_derive_pos_arg(quote! { struct Foo(String) ; }).unwrap()"
+expression: "test_pos_arg_deriver(quote! { struct Foo(String) ; }).unwrap()"
 ---
 impl cli_compose::schema::AsMember for Foo {
     fn handle(mut builder: cli_compose::schema::CliBuilder) -> cli_compose::schema::CliBuilder {

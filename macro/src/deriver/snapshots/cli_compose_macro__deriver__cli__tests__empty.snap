@@ -1,7 +1,7 @@
 ---
-source: macro/src/deriver/pos_arg.rs
-assertion_line: 134
-expression: "test_pos_arg_deriver(quote! {})"
+source: macro/src/deriver/cli.rs
+assertion_line: 27
+expression: derive_cli(input)
 ---
 Err(
     Error(

@@ -1,7 +1,7 @@
 ---
 source: macro/src/deriver/arg_opt.rs
 assertion_line: 147
-expression: "test_derive_arg_opt(quote! { struct Foo(String) ; }).unwrap()"
+expression: "test_arg_opt_deriver(quote! { struct Foo(String) ; }).unwrap()"
 ---
 impl cli_compose::schema::AsMember for Foo {
     fn handle(mut builder: cli_compose::schema::CliBuilder) -> cli_compose::schema::CliBuilder {
@@ -9,7 +9,7 @@ impl cli_compose::schema::AsMember for Foo {
         let flag = format!("{}", <Foo as AsArgOpt>::flag());
         builder
             .ops
-            .extend(quote! { println ! ("   Opt {}" , # flag) ; });
+            .extend(quote! { println ! ("ArgOpt {}" , # flag) ; });
         builder
     }
 }

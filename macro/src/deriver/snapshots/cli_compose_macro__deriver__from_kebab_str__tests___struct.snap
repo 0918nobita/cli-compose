@@ -1,0 +1,9 @@
+---
+source: macro/src/deriver/from_kebab_str.rs
+expression: test_from_kebab_str_deriver(input)
+---
+Err(
+    Error(
+        "`#[derive(FromKebabStr)]` can only be applied to enums whose variants have no field",
+    ),
+)

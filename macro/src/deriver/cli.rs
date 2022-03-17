@@ -17,10 +17,19 @@ pub fn derive_cli(input: TokenStream) -> syn::Result<TokenStream> {
 
 #[cfg(test)]
 mod tests {
+    use quote::quote;
+
+    use super::derive_cli;
+
     #[test]
-    fn test_derive_cli() {
-        let input = quote::quote! { struct Cli; };
-        insta::assert_display_snapshot!(super::derive_cli(input)
+    fn empty() {
+        insta::assert_debug_snapshot!(derive_cli(quote! {}));
+    }
+
+    #[test]
+    fn empty_struct() {
+        let input = quote! { struct Cli; };
+        insta::assert_display_snapshot!(derive_cli(input)
             .map(|tokens| crate::pretty_print::pretty_print_rust_code(tokens).unwrap())
             .unwrap());
     }

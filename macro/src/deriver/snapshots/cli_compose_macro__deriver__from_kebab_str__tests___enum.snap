@@ -1,0 +1,17 @@
+---
+source: macro/src/deriver/from_kebab_str.rs
+assertion_line: 73
+expression: test_from_kebab_str_deriver(input).unwrap()
+---
+impl std::str::FromStr for TextFileFormat {
+    type Err = ();
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "json" => Ok(TextFileFormat::Json),
+            "yaml" => Ok(TextFileFormat::Yaml),
+            "re-structured-text" => Ok(TextFileFormat::ReStructuredText),
+            _ => Err(()),
+        }
+    }
+}
+

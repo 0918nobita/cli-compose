@@ -66,3 +66,19 @@ pub fn derive_opt(input: TokenStream) -> syn::Result<TokenStream> {
         }
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use quote::quote;
+
+    fn test_opt_deriver(input: proc_macro2::TokenStream) -> anyhow::Result<String> {
+        let tokens = super::derive_opt(input)?;
+
+        crate::pretty_print::pretty_print_rust_code(tokens)
+    }
+
+    #[test]
+    fn empty() {
+        insta::assert_debug_snapshot!(test_opt_deriver(quote! {}));
+    }
+}

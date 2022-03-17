@@ -1,7 +1,7 @@
 ---
-source: cli-compose-macro/src/deriver/arg_opt.rs
-assertion_line: 167
-expression: "test_derive_arg_opt(quote! { struct Foo(String, i32) ; })"
+source: macro/src/deriver/arg_opt.rs
+assertion_line: 155
+expression: "test_arg_opt_deriver(quote! { struct Foo(String, i32) ; })"
 ---
 Err(
     Error(

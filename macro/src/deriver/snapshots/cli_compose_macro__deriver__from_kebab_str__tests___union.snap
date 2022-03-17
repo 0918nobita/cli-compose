@@ -1,0 +1,10 @@
+---
+source: macro/src/deriver/from_kebab_str.rs
+assertion_line: 86
+expression: "test_from_kebab_str_deriver(quote! { union Foo { f1 : i32, f2 : u32 } })"
+---
+Err(
+    Error(
+        "`#[derive(FromKebabStr)]` can only be applied to enums whose variants have no field",
+    ),
+)

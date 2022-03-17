@@ -45,3 +45,46 @@ pub fn derive_from_kebab_str(input: TokenStream) -> syn::Result<TokenStream> {
         }
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use quote::quote;
+
+    fn test_from_kebab_str_deriver(input: proc_macro2::TokenStream) -> anyhow::Result<String> {
+        let tokens = super::derive_from_kebab_str(input)?;
+
+        crate::pretty_print::pretty_print_rust_code(tokens)
+    }
+
+    #[test]
+    fn empty() {
+        insta::assert_debug_snapshot!(test_from_kebab_str_deriver(quote! {}));
+    }
+
+    #[test]
+    fn _enum() {
+        let input = quote! {
+            enum TextFileFormat {
+                Json,
+                Yaml,
+                ReStructuredText,
+            }
+        };
+        insta::assert_display_snapshot!(test_from_kebab_str_deriver(input).unwrap());
+    }
+
+    #[test]
+    fn _struct() {
+        let input = quote! {
+            struct Foo;
+        };
+        insta::assert_debug_snapshot!(test_from_kebab_str_deriver(input));
+    }
+
+    #[test]
+    fn _union() {
+        insta::assert_debug_snapshot!(test_from_kebab_str_deriver(quote! {
+            union Foo { f1: i32, f2: u32 }
+        }));
+    }
+}

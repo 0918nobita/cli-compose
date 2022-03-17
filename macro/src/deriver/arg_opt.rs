@@ -99,7 +99,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
                 let flag = format!("{}", <#ty_name as AsArgOpt>::flag());
 
                 builder.ops.extend(quote! {
-                    println!("   Opt {}", #sharp flag);
+                    println!("ArgOpt {}", #sharp flag);
                 });
 
                 builder
@@ -124,7 +124,7 @@ pub fn derive_arg_opt(input: TokenStream) -> syn::Result<TokenStream> {
 mod tests {
     use quote::quote;
 
-    fn test_derive_arg_opt(input: proc_macro2::TokenStream) -> anyhow::Result<String> {
+    fn test_arg_opt_deriver(input: proc_macro2::TokenStream) -> anyhow::Result<String> {
         let tokens = super::derive_arg_opt(input)?;
 
         crate::pretty_print::pretty_print_rust_code(tokens)
@@ -132,19 +132,19 @@ mod tests {
 
     #[test]
     fn empty() {
-        insta::assert_debug_snapshot!(test_derive_arg_opt(quote! {}));
+        insta::assert_debug_snapshot!(test_arg_opt_deriver(quote! {}));
     }
 
     #[test]
     fn struct_without_field() {
-        insta::assert_debug_snapshot!(test_derive_arg_opt(quote! {
+        insta::assert_debug_snapshot!(test_arg_opt_deriver(quote! {
             struct Foo;
         }));
     }
 
     #[test]
     fn struct_with_single_field() {
-        insta::assert_display_snapshot!(test_derive_arg_opt(quote! {
+        insta::assert_display_snapshot!(test_arg_opt_deriver(quote! {
             struct Foo(String);
         })
         .unwrap());
@@ -152,14 +152,14 @@ mod tests {
 
     #[test]
     fn struct_with_multiple_fields() {
-        insta::assert_debug_snapshot!(test_derive_arg_opt(quote! {
+        insta::assert_debug_snapshot!(test_arg_opt_deriver(quote! {
             struct Foo(String, i32);
         }));
     }
 
     #[test]
     fn _enum() {
-        insta::assert_display_snapshot!(test_derive_arg_opt(quote! {
+        insta::assert_display_snapshot!(test_arg_opt_deriver(quote! {
             enum Foo { Bar, Baz }
         })
         .unwrap());
@@ -167,7 +167,7 @@ mod tests {
 
     #[test]
     fn _union() {
-        insta::assert_debug_snapshot!(test_derive_arg_opt(quote! {
+        insta::assert_debug_snapshot!(test_arg_opt_deriver(quote! {
             union Foo { f1: i32, f2: u32 }
         }));
     }

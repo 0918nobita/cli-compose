@@ -1,7 +1,7 @@
 ---
 source: macro/src/deriver/pos_arg.rs
-assertion_line: 104
-expression: "test_derive_pos_arg(quote! { struct Foo ; })"
+assertion_line: 139
+expression: "test_pos_arg_deriver(quote! { struct Foo ; })"
 ---
 Err(
     Error(

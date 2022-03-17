@@ -1,7 +1,7 @@
 ---
 source: macro/src/deriver/cli.rs
-assertion_line: 23
-expression: "super::derive_cli(input).map(|tokens|\n            crate::pretty_print::pretty_print_rust_code(tokens).unwrap()).unwrap()"
+assertion_line: 33
+expression: "derive_cli(input).map(|tokens|\n            crate::pretty_print::pretty_print_rust_code(tokens).unwrap()).unwrap()"
 ---
 impl cli_compose::schema::AsCliMeta for Cli {
     fn ident() -> cli_compose::schema::forwarded::syn::Ident {

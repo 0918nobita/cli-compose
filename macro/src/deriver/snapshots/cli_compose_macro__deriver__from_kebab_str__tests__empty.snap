@@ -1,0 +1,10 @@
+---
+source: macro/src/deriver/from_kebab_str.rs
+assertion_line: 61
+expression: "test_from_kebab_str_deriver(quote! {})"
+---
+Err(
+    Error(
+        "unexpected end of input, expected one of: `struct`, `enum`, `union`",
+    ),
+)
