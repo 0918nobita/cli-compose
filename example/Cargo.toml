@@ -1,6 +1,6 @@
 [package]
 name = "example"
-version = "0.1.0"
+version = "0.1.0-alpha.0"
 authors = ["Kodai Matsumoto <nobita.0918@gmail.com>"]
 license = "MIT"
 edition = "2021"

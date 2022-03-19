@@ -29,7 +29,7 @@ dependencies = [
 
 [[package]]
 name = "cli-compose"
-version = "0.1.0"
+version = "0.1.0-alpha.0"
 dependencies = [
  "anyhow",
  "cli-compose-macro",
@@ -45,7 +45,7 @@ dependencies = [
 
 [[package]]
 name = "cli-compose-macro"
-version = "0.1.0"
+version = "0.1.0-alpha.0"
 dependencies = [
  "anyhow",
  "bae",
@@ -103,7 +103,7 @@ checksum = "a357d28ed41a50f9c765dbfe56cbc04a64e53e5fc58ba79fbc34c10ef3df831f"
 
 [[package]]
 name = "example"
-version = "0.1.0"
+version = "0.1.0-alpha.0"
 dependencies = [
  "cli-compose",
  "example-opts",
@@ -111,7 +111,7 @@ dependencies = [
 
 [[package]]
 name = "example-opts"
-version = "0.1.0"
+version = "0.1.0-alpha.0"
 dependencies = [
  "cli-compose",
 ]
