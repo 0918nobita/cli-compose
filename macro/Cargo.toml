@@ -15,7 +15,7 @@ anyhow = "1.0.56"
 bae = "0.1.7"
 convert_case = "0.5.0"
 derive_more = "0.99.17"
-proc-macro2 = "1.0.36"
+proc-macro2 = "1.0.37"
 quote = "1.0.17"
 
 [dependencies.syn]
