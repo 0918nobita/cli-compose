@@ -38,7 +38,7 @@ runtime = []
 schema = []
 
 [dependencies]
-anyhow = "1.0.56"
+anyhow = "1.0.57"
 cli-compose-macro = { path = "./macro" }
 convert_case = "0.5.0"
 derive_more = "0.99.17"
