@@ -11,7 +11,7 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
-anyhow = "1.0.56"
+anyhow = "1.0.57"
 bae = "0.1.7"
 convert_case = "0.5.0"
 derive_more = "0.99.17"
