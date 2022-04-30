@@ -45,7 +45,7 @@ derive_more = "0.99.17"
 proc-macro2 = "1.0.37"
 quote = "1.0.18"
 str-macro = "1.0.0"
-thiserror = "1.0.30"
+thiserror = "1.0.31"
 
 [dependencies.syn]
 version = "1.0.92"
