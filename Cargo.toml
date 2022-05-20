@@ -42,7 +42,7 @@ anyhow = "1.0.57"
 cli-compose-macro = { path = "./macro" }
 convert_case = "0.5.0"
 derive_more = "0.99.17"
-proc-macro2 = "1.0.38"
+proc-macro2 = "1.0.39"
 quote = "1.0.18"
 str-macro = "1.0.0"
 thiserror = "1.0.31"
