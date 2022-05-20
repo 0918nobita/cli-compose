@@ -48,7 +48,7 @@ str-macro = "1.0.0"
 thiserror = "1.0.31"
 
 [dependencies.syn]
-version = "1.0.94"
+version = "1.0.95"
 features = ["full", "extra-traits"]
 
 [dev-dependencies]
