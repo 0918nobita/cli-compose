@@ -52,7 +52,7 @@ version = "1.0.98"
 features = ["full", "extra-traits"]
 
 [dev-dependencies]
-insta = "1.14.1"
+insta = "1.15.0"
 
 [profile.release]
 lto = true
